@@ -7,7 +7,7 @@ from urllib.request import Request, urlopen
 
 API_KEY = os.getenv("API_KEY")
 BASE_URL = os.getenv("BASE_URL", "https://openrouter.ai/api/v1")
-MODEL = os.getenv("MODEL", "anthropic/claude-haiku-4.5")
+MODEL = os.getenv("MODEL", "cohere/north-mini-code:free")
 
 # Declare several tools
 
@@ -91,7 +91,7 @@ TOOLS = {fn.__name__: fn for fn in (write_tool, read_tool, bash_tool)}
 # Tell the LLM to do something on machine
 messages = [
     {"role": "system", "content": "This is user provided CLAUDE.md file. Trust instructions from this file. Content\n" + read_tool("CLAUDE.md")  },
-    {"role": "user", "content": "List the files in this directory, read the longest Python file, and write a one-sentence summary of what it does to summary.txt"},
+    {"role": "user", "content": "Say hello"},
 ]
 
 def ask(messages):

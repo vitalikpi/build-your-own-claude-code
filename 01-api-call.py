@@ -6,7 +6,7 @@ from urllib.request import Request, urlopen
 
 API_KEY = os.getenv("API_KEY")
 BASE_URL = os.getenv("BASE_URL", "https://openrouter.ai/api/v1")
-MODEL = os.getenv("MODEL", default="anthropic/claude-haiku-4.5")
+MODEL = os.getenv("MODEL", default="cohere/north-mini-code:free")
 
 # This is what we ask model to do
 messages = [
