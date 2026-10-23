@@ -70,8 +70,8 @@ while True:
     message = resp_body["choices"][0]["message"]
     messages.append(message)  # "I (the model) said this / asked for these tools"
 
-    # The above command look obvious, but it was not that obvious at first.
-    # The LLM should now what it is asked for and get a confirmation or the result back.
+    # The above command looks obvious, but it was not that obvious at first.
+    # The LLM should know what it is asked for and get a confirmation or the result back.
     # This and tool result keep "hallucinations" at bay and makes model more "honest".
     # See: ReAct: Synergizing Reasoning and Acting in Language Models
 

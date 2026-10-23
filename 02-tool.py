@@ -1,4 +1,4 @@
-# Step 2. Tools. Delegate LLm a job to do
+# Step 2. Tools. Delegate LLM a job to do
 
 import json
 import os

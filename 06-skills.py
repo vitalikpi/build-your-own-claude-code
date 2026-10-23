@@ -1,4 +1,4 @@
-# Step 5. Stacking skills
+# Step 6. Stacking skills
 
 import json
 import os
@@ -51,7 +51,7 @@ def expand_skill(skill_name, skill_arguments):
 
     skill_content = skill["content"]
 
-    # invoke `repl` for every `$` occurence
+    # invoke `repl` for every `$` occurrence
     return re.sub(r"\$[a-zA-Z\d\[\]]+", repl, skill_content)
 
 def expand_prompt(prompt):
@@ -198,8 +198,8 @@ while True:
     message = resp_body["choices"][0]["message"]
     messages.append(message)  # "I (the model) said this / asked for these tools"
 
-    # The above command look obvious, but it was not that obvious at first.
-    # The LLM should now what it is asked for and get a confirmation or the result back.
+    # The above command looks obvious, but it was not that obvious at first.
+    # The LLM should know what it is asked for and get a confirmation or the result back.
     # This and tool result keep "hallucinations" at bay and makes model more "honest".
     # See: ReAct: Synergizing Reasoning and Acting in Language Models
 
@@ -210,7 +210,11 @@ while True:
 
             # select the tool the model named - one lookup, no scan
             tool = TOOLS.get(tool_name)
-            result = tool(**args) if tool else f"tool {tool_name} not found"
+            # a tool error becomes feedback, not a crash - the model sees it and self-corrects
+            try:
+                result = tool(**args) if tool else f"tool {tool_name} not found"
+            except Exception as e:
+                result = f"error running {tool_name}: {e!r}"
 
             messages.append({  # "here's what that call produced"
                 "role": "tool",

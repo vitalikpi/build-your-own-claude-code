@@ -1,4 +1,4 @@
-# Step 8. Make your model delegate work to subagent
+# Step 9. Make your model delegate work to subagent
 
 import json
 import os
@@ -51,7 +51,7 @@ def expand_skill(skill_name, skill_arguments):
 
     skill_content = skill["content"]
 
-    # invoke `repl` for every `$` occurence
+    # invoke `repl` for every `$` occurrence
     return re.sub(r"\$[a-zA-Z\d\[\]]+", repl, skill_content)
 
 def expand_prompt(prompt):
@@ -228,8 +228,8 @@ def run_loop(messages, tools):
         message = resp_body["choices"][0]["message"]
         messages.append(message)  # "I (the model) said this / asked for these tools"
 
-        # The above command look obvious, but it was not that obvious at first.
-        # The LLM should now what it is asked for and get a confirmation or the result back.
+        # The above command looks obvious, but it was not that obvious at first.
+        # The LLM should know what it is asked for and get a confirmation or the result back.
         # This and tool result keep "hallucinations" at bay and makes model more "honest".
         # See: ReAct: Synergizing Reasoning and Acting in Language Models
 
