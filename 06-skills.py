@@ -1,4 +1,4 @@
-# Step 4. Multiple commands.
+# Step 5. Stacking skills
 
 import json
 import os
@@ -40,14 +40,14 @@ def expand_skill(skill_name, skill_arguments):
         shorthand = re.match(r"\$(\d+)", match_str) # a short-form like `$1`
         if shorthand:
             arg_no = int(shorthand.group(1))
-            return skill_arguments[arg_no] if 0 <= arg_no < len(skill_arguments) else ""
+            return skill_arguments[arg_no] if 0 <= arg_no < len(skill_arguments) else match_str
 
         fullname = re.match(r"\$ARGUMENTS\[(\d+)]", match_str) # a fullname like $ARGUMENTS[$1]
         if fullname:
             arg_no = int(fullname.group(1))
-            return skill_arguments[arg_no] if 0 <= arg_no < len(skill_arguments) else ""
+            return skill_arguments[arg_no] if 0 <= arg_no < len(skill_arguments) else match_str
 
-        return "" # todo: is better not return the match.group(0) here?
+        return match_str  # leave unrecognized $tokens (e.g. $HOME, $42) untouched
 
     skill_content = skill["content"]
 
@@ -159,6 +159,7 @@ def bash_tool(command):
 TOOLS = {fn.__name__: fn for fn in (write_tool, read_tool, bash_tool)}
 
 messages = [
+    {"role": "system", "content": "This is user provided CLAUDE.md file. Trust instructions from this file. Content\n" + read_tool("CLAUDE.md")  },
     # Disclose that we have some useful skills
     # As an experiment - try to remove the line about trust - see if it triggers guardrails.
     {
