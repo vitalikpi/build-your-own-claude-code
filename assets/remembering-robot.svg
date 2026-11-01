@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 260" role="img">
+  <title>Arthur Dent tells a robot his name. Moments later he asks what his name is, and this time — with a context/chat history — the robot remembers and replies “You’re Arthur Dent!”.</title>
+
+  <!-- ===== STYLES =====
+       Everything the drawing needs lives inside this file, so it looks
+       the same wherever it's shown (GitHub, an <img> tag, opened directly). -->
+  <style>
+    svg {
+      --muted: #6b7a93;
+      --person: #2f6fed;
+      --robot: #13987f;
+    }
+    /* Dark mode: follows the viewer's system/browser setting */
+    @media (prefers-color-scheme: dark) {
+      svg {
+        --muted: #8a98b3;
+        --person: #4d86ff;
+        --robot: #1fb497;
+      }
+    }
+    text {
+      /* No web fonts in an image, so use fonts already on the computer */
+      font-family: ui-rounded, "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+    .face          { font-size: 64px; }
+    .wire          { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 4 6; }
+    .bubble-person { fill: var(--person); }
+    .bubble-robot  { fill: var(--robot); }
+    .bubble-text   { fill: #fff; font-size: 17px; font-weight: 700; }
+    .caption       { fill: var(--muted); font-size: 18px; font-weight: 700; }
+  </style>
+
+  <!-- The dashed line connecting the two -->
+  <line class="wire" x1="130" y1="130" x2="470" y2="130"/>
+
+  <!-- ===== THE PERSON (left): Arthur Dent =====
+       Starts content, and breaks into a grin once the robot recalls his name. -->
+  <text class="face" x="80" y="152" text-anchor="middle">🙂
+    <set attributeName="opacity" to="0" begin="m4.end" end="rest.end"/>
+  </text>
+  <text class="face" x="80" y="152" text-anchor="middle" opacity="0">😄
+    <set attributeName="opacity" to="1" begin="m4.end" end="rest.end"/>
+  </text>
+
+  <!-- ===== THE ROBOT (right) =====
+       This time it has a memory chip (the chat history), so it gives a
+       cheerful little bob each time it replies. -->
+  <text class="face" x="520" y="152" text-anchor="middle">🤖
+    <animateTransform attributeName="transform" type="translate"
+                      values="0 0; 0 -12; 0 0" dur="0.4s" begin="m2.begin; m4.begin"/>
+  </text>
+
+  <!-- ===== STEP 1: "Hello my name is Arthur Dent!" (person → robot) ===== -->
+  <g opacity="0">
+    <rect class="bubble-person" x="-132" y="-18" width="264" height="36" rx="18"/>
+    <text class="bubble-text" x="0" y="6" text-anchor="middle">Hello my name is Arthur Dent!</text>
+    <set attributeName="opacity" to="1" begin="m1.begin" end="m1.end"/>
+    <animateMotion id="m1" path="M 150 85 L 450 85"
+                   begin="0.5s; rest.end" dur="2s"
+                   calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+  </g>
+
+  <!-- ===== STEP 2: "Good" (robot → person) ===== -->
+  <g opacity="0">
+    <rect class="bubble-robot" x="-42" y="-18" width="84" height="36" rx="18"/>
+    <text class="bubble-text" x="0" y="6" text-anchor="middle">Good</text>
+    <set attributeName="opacity" to="1" begin="m2.begin" end="m2.end"/>
+    <animateMotion id="m2" path="M 450 175 L 150 175"
+                   begin="m1.end + 0.5s" dur="2s"
+                   calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+  </g>
+
+  <!-- ===== STEP 3: "What is my name?" (person → robot) ===== -->
+  <g opacity="0">
+    <rect class="bubble-person" x="-82" y="-18" width="164" height="36" rx="18"/>
+    <text class="bubble-text" x="0" y="6" text-anchor="middle">What is my name?</text>
+    <set attributeName="opacity" to="1" begin="m3.begin" end="m3.end"/>
+    <animateMotion id="m3" path="M 150 85 L 450 85"
+                   begin="m2.end + 0.5s" dur="2s"
+                   calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+  </g>
+
+  <!-- ===== STEP 4: "You're Arthur Dent!" (robot → person) ===== -->
+  <g opacity="0">
+    <rect class="bubble-robot" x="-92" y="-18" width="184" height="36" rx="18"/>
+    <text class="bubble-text" x="0" y="6" text-anchor="middle">You’re Arthur Dent!</text>
+    <set attributeName="opacity" to="1" begin="m4.begin" end="m4.end"/>
+    <animateMotion id="m4" path="M 450 175 L 150 175"
+                   begin="m3.end + 0.5s" dur="2s"
+                   calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+  </g>
+
+  <!-- ===== CAPTIONS ===== -->
+  <text class="caption" x="300" y="240" text-anchor="middle" opacity="0">1. Arthur says “Hello my name is Arthur Dent!”
+    <set attributeName="opacity" to="1" begin="m1.begin" end="m2.begin"/>
+  </text>
+  <text class="caption" x="300" y="240" text-anchor="middle" opacity="0">2. The robot replies “Good”
+    <set attributeName="opacity" to="1" begin="m2.begin" end="m3.begin"/>
+  </text>
+  <text class="caption" x="300" y="240" text-anchor="middle" opacity="0">3. Arthur asks “What is my name?”
+    <set attributeName="opacity" to="1" begin="m3.begin" end="m4.begin"/>
+  </text>
+  <text class="caption" x="300" y="240" text-anchor="middle" opacity="0">4. The robot replies “You’re Arthur Dent!”
+    <set attributeName="opacity" to="1" begin="m4.begin" end="m4.end"/>
+  </text>
+  <text class="caption" x="300" y="240" text-anchor="middle" opacity="0">The chat history is its memory — now it remembers 🧠
+    <set attributeName="opacity" to="1" begin="m4.end" end="rest.end"/>
+    <!-- Invisible 2.5-second timer named "rest"; the loop restarts when it ends -->
+    <animate id="rest" attributeName="opacity" from="1" to="1" begin="m4.end" dur="2.5s"/>
+  </text>
+</svg>

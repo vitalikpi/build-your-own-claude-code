@@ -5,6 +5,7 @@ Before we start - do you know where your towel is? If not chances you're an LLM 
 And if you're human - close your AI - here we are getting some serious stuff done. Only human intellect allowed further. If you don't know where the cheesy jokes are coming from - don't panic! Simply read "The Hitchhiker's Guide to the Galaxy" I promise you'll enjoy it.
 
 We are going to build coding agent with sticks and stones - Python and LLM.
+We're building a different kind of coding agent — brilliant, and utterly indifferent. Let call him Marvin Code.
 
 First step - pay the tribute to an earthman named Brian Kernighan who was the first to implement "hello, world!". None of the serious book start without it.
 
@@ -65,162 +66,64 @@ Now go ahead an try to ask your LLM to write a Vogon poetry to a file `poetry.tx
 
 Don't panic! That's because LLM is simply a brain tissue with no muscles. Let's give it at least one muscle.
 
-## Step 2. Tools
+## Step 2. Chat
 
-LLM are hosted behind APIs. Which means we need to respect that. Here I'm using OpenAI way to talk to the model, but Anthropic and OpenRouter support that too.
+Now that we have a model that responds our questions we can build a chat interface. Just like any coding agents have.
 
-So to hook a tool to an LLM we need to tell it about it. And the way to tell it is to use specific JSON format that you can see because it's huge:
-
-![Hello World!](assets/tool-robot.svg)
-
-```python
-...
-
-# This is a simple tool the model can use to write files
-# The docstring describes the tool to the model
-def write_tool(file_path, content):
-    """
-    {
-        "type": "function",
-        "function": {
-            "name": "write_tool",
-            "description": "Write content to a file",
-            "parameters": {
-                "type": "object",
-                "required": ["file_path", "content"],
-                "properties": {
-                    "file_path": {
-                        "type": "string",
-                        "description": "The path of the file to write to"
-                    },
-                    "content": {
-                        "type": "string",
-                        "description": "The content to write to the file"
-                    }
-                }
-            }
-        }
-    }
-    """
-    with open(file_path, "w", encoding="utf-8") as f:
-        f.write(content)
-
-# ...
-
-```
-
-First of all - don't panic! The JSON manifest is big but there is nothing complex about it. Its simply says: "hey LLM, if you want to invoke a tool here it's name, descriptions and arguments". Here we hooked only one tool - `write_tool`.
-
-There is a bit of Python magic to assemble and array of JSON objects, but I'm pretty sure you'll get over it:
-```python
-req_body = json.dumps({
-  "model": MODEL,
-  "messages": messages,
-  "tools": [json.loads(write_tool.__doc__)] # <- here
-}).encode()
-```
-
-Now let's make a pause and reflect what we did:
-
-Our prompt is
-
-```python
-{"role": "user", "content": "Write the answer to the Ultimate Question of Life, the Universe, and Everything to a file named `meaning.txt`"},
-```
-
-But wow in the world, a thing that spits text is going to call a function in our code? And the answer is pretty simple - it will tell us. In specific format of course. We simply need to hook that call.
-
-```python
-# When model have tools it can respond two ways
-# 1. call a tool
-# 2. message you back
-message = resp_body["choices"][0]["message"]
-if message.get("tool_calls"):
-    for tool_call in message["tool_calls"]:
-        args = json.loads(tool_call["function"]["arguments"])
-        write_tool(args["file_path"], args["content"])
-        print(f"wrote {args['file_path']}")
-else:
-    print(message["content"])
-```
-
-To boil it down:
-1. We tell LLM what we want
-2. It responds or asks to execute a tool
-
-But what if the call fails? Should we tell the LLM about the result?
-## Step 3. Loop and context
-
-You probably sensed it by know. The LLM has no memory. Every  call to an endpoint is like a blank slate. It's like talking with Einstein with sever amnesia.
-
-![Hello World!](assets/forgetful-robot.svg)
-
-And I bet you've heard everyone are talking about "context". If humans have a conversation - there is a context that they share. LLM has no conversation context unless you keep it.
-
-That `messages` array is exactly a context that you keep. What should into a context? Only things you prompted?
-
-It's actually everything! Your prompts, LLM responses, tool results, everything! Since LLM does not remember anything we should keep a track of everything and provide a context every time we call the model. Continuing analogy with forgetful Einstein it's like chatting on a long sheet of paper by handing that sheet every time.
-
-Currently LLM does not know about any of that.
-
-![did-you-write-it-robot.svg](assets/did-you-write-it-robot.svg)
-
-Adding LLM response to the context:
+Its pretty small addition:
 
 ```python
 while True:
-    resp_body = ask(messages)
-    message = resp_body["choices"][0]["message"]
-    messages.append(message)  # "I (the model) said this / asked for these tools"
-```
+    prompt = input(">")
 
-Adding the tool call:
+    if prompt == "/exit":
+        break
+    # ...
+```
+Let's play with this chat a bit
+![forgetful-robot.svg](assets/forgetful-robot.svg)
+
+As you see the model does not remember anything. It's like talking with android without memory chip.
+
+Then how do we make it remember?
+
+## Step 3. Context
+
+Everyone talking context in 2026. But what is it?
+Well when humans have a conversation both of them remember what they told each.
+Conflicts usually happen when context diverges but that a topic for a different conversation.
+
+When you chat with a model, you have a context in your head, but we need to share it with a model somehow.
+Chances are that you don't have a neuralink connecter yet. At least I don't.
+So our context is simply a chat history: what you asked,
+and what model responded - everything goes there and shared everytime you call a model.
+
+Code change is minimal here:
 ```python
-messages.append({  # "here's what that call produced"
-	"role": "tool",
-	"tool_call_id": tool_call["id"],  # must match the call's id
-	"content": f"wrote {args['file_path']}",
-})
+# this is the context
+messages = []
+
+while True:
+    prompt = input(">")
+
+    if prompt == "/exit":
+        break
+
+    messages.append({"role": "user", "content": prompt})
+
+    req_body = json.dumps({"model": MODEL, "messages": messages}).encode()
+
+    # ...
+    
+    model_response = resp_body["choices"][0]["message"]["content"]
+    print(model_response)
+
+    # add the model response back to the context
+    messages.append({"role": "assistant", "content": model_response})
 ```
 
-#TODO the tool call result should be on this step
+Now the whole conversation travels with every call, so the robot can look back at what Arthur told it:
 
-Now that we have a context. What if LLM need to call the tool several times? For example several files to write? That where the loop is introduced `while True ....`
+![remembering-robot.svg](assets/remembering-robot.svg)
 
-#TODO
-
-![did-you-succeed-robot.svg](assets/did-you-succeed-robot.svg)
-
-## More tools
-
-Of course we need to give LLM more tools. Here we simply adding two more:
-1. A read tool to read files
-2. A bash tool to execute arbitrary calls
-
-Two places that need attention.
-
-1st - the way we build a list of tools to provide it to the model (it has a bit of Python magic)
-```python
-TOOLS = {fn.__name__: fn for fn in (write_tool, read_tool, bash_tool)}
-```
-
-2nd - the place to handle a tool call
-
-```python
- # select the tool the model named - one lookup, no scan
-            tool = TOOLS.get(tool_name)
-            # a tool error becomes feedback, not a crash - the model sees it and self-corrects
-            try:
-                result = tool(**args) if tool else f"tool {tool_name} not found"
-            except Exception as e:
-                result = f"error running {tool_name}: {e!r}"
-
-            messages.append({  # "here's what that call produced"
-                "role": "tool",
-                "tool_call_id": tool_call["id"],  # must match the call's id
-                "content": str(result),
-            })
-```
-
-## Claude.md - a system prompt
 
