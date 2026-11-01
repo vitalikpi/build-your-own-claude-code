@@ -161,6 +161,10 @@ That `messages` array is exactly a context that you keep. What should into a con
 
 It's actually everything! Your prompts, LLM responses, tool results, everything! Since LLM does not remember anything we should keep a track of everything and provide a context every time we call the model. Continuing analogy with forgetful Einstein it's like chatting on a long sheet of paper by handing that sheet every time.
 
+Currently LLM does not know about any of that.
+
+![did-you-write-it-robot.svg](assets/did-you-write-it-robot.svg)
+
 Adding LLM response to the context:
 
 ```python
@@ -184,6 +188,8 @@ messages.append({  # "here's what that call produced"
 Now that we have a context. What if LLM need to call the tool several times? For example several files to write? That where the loop is introduced `while True ....`
 
 #TODO
+
+![did-you-succeed-robot.svg](assets/did-you-succeed-robot.svg)
 
 ## More tools
 
