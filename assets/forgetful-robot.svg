@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 260" role="img">
+  <title>A person asks a robot “what did I ask before?”. The robot replies “I don’t know” and the person looks puzzled.</title>
+
+  <!-- ===== STYLES =====
+       Everything the drawing needs lives inside this file, so it looks
+       the same wherever it's shown (GitHub, an <img> tag, opened directly). -->
+  <style>
+    svg {
+      --muted: #6b7a93;
+      --person: #2f6fed;
+      --robot: #13987f;
+    }
+    /* Dark mode: follows the viewer's system/browser setting */
+    @media (prefers-color-scheme: dark) {
+      svg {
+        --muted: #8a98b3;
+        --person: #4d86ff;
+        --robot: #1fb497;
+      }
+    }
+    text {
+      /* No web fonts in an image, so use fonts already on the computer */
+      font-family: ui-rounded, "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+    .face          { font-size: 64px; }
+    .wire          { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 4 6; }
+    .bubble-person { fill: var(--person); }
+    .bubble-robot  { fill: var(--robot); }
+    .bubble-text   { fill: #fff; font-size: 17px; font-weight: 700; }
+    .caption       { fill: var(--muted); font-size: 18px; font-weight: 700; }
+  </style>
+
+  <!-- The dashed line connecting the two -->
+  <line class="wire" x1="130" y1="130" x2="470" y2="130"/>
+
+  <!-- ===== THE PERSON (left) ===== -->
+  <text class="face" x="80" y="152" text-anchor="middle">🙂
+    <set attributeName="opacity" to="0" begin="reply.end" end="rest.end"/>
+  </text>
+  <text class="face" x="80" y="152" text-anchor="middle" opacity="0">😕
+    <set attributeName="opacity" to="1" begin="reply.end" end="rest.end"/>
+  </text>
+
+  <!-- ===== THE ROBOT (right) ===== -->
+  <text class="face" x="520" y="152" text-anchor="middle">🤖
+    <animateTransform attributeName="transform" type="translate"
+                      values="0 0; 0 -12; 0 0" dur="0.4s" begin="send.end"/>
+  </text>
+
+  <!-- ===== STEP 1: "what did I ask before?" (person → robot) ===== -->
+  <g opacity="0">
+    <rect class="bubble-person" x="-96" y="-18" width="192" height="36" rx="18"/>
+    <text class="bubble-text" x="0" y="6" text-anchor="middle">what did I ask before?</text>
+    <set attributeName="opacity" to="1" begin="send.begin" end="send.end"/>
+    <animateMotion id="send" path="M 150 85 L 450 85"
+                   begin="0.5s; rest.end" dur="2s"
+                   calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+  </g>
+
+  <!-- ===== STEP 2: "I don't know" (robot → person) ===== -->
+  <g opacity="0">
+    <rect class="bubble-robot" x="-66" y="-18" width="132" height="36" rx="18"/>
+    <text class="bubble-text" x="0" y="6" text-anchor="middle">I don’t know</text>
+    <set attributeName="opacity" to="1" begin="reply.begin" end="reply.end"/>
+    <animateMotion id="reply" path="M 450 175 L 150 175"
+                   begin="send.end + 0.5s" dur="2s"
+                   calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+  </g>
+
+  <!-- ===== CAPTIONS ===== -->
+  <text class="caption" x="300" y="240" text-anchor="middle" opacity="0">1. You ask “what did I ask before?”
+    <set attributeName="opacity" to="1" begin="send.begin" end="reply.begin"/>
+  </text>
+  <text class="caption" x="300" y="240" text-anchor="middle" opacity="0">2. The robot replies “I don’t know”
+    <set attributeName="opacity" to="1" begin="reply.begin" end="reply.end"/>
+  </text>
+  <text class="caption" x="300" y="240" text-anchor="middle" opacity="0">Huh — it doesn’t remember?
+    <set attributeName="opacity" to="1" begin="reply.end" end="rest.end"/>
+    <!-- Invisible 2.5-second timer named "rest"; the loop restarts when it ends -->
+    <animate id="rest" attributeName="opacity" from="1" to="1" begin="reply.end" dur="2.5s"/>
+  </text>
+</svg>

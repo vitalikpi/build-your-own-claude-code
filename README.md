@@ -10,6 +10,8 @@ First step - pay the tribute to an earthman named Brian Kernighan who was the fi
 
 ## Step 1. Hello World!
 
+![Hello World!](assets/hello-robot.svg)
+
 Let's make LLM say "hello, world!". Simply take a LLM provider you like, grab a token and make a call.
 
 ```python
@@ -59,6 +61,8 @@ The rest is making a request, converting JSON and reading token is pretty boring
 
 Now go ahead an try to ask your LLM to write a Vogon poetry to a file `poetry.txt`. Any luck?
 
+![Hello World!](assets/cant-robot.svg)
+
 Don't panic! That's because LLM is simply a brain tissue with no muscles. Let's give it at least one muscle.
 
 ## Step 2. Tools
@@ -66,6 +70,8 @@ Don't panic! That's because LLM is simply a brain tissue with no muscles. Let's 
 LLM are hosted behind APIs. Which means we need to respect that. Here I'm using OpenAI way to talk to the model, but Anthropic and OpenRouter support that too.
 
 So to hook a tool to an LLM we need to tell it about it. And the way to tell it is to use specific JSON format that you can see because it's huge:
+
+![Hello World!](assets/tool-robot.svg)
 
 ```python
 ...
@@ -145,7 +151,9 @@ To boil it down:
 But what if the call fails? Should we tell the LLM about the result?
 ## Step 3. Loop and context
 
-You probably sensed it by know. The LLM has no memory. Every  call to an endpoint is like a blank slate. It's like talking with Einstein with sever amnesia. 
+You probably sensed it by know. The LLM has no memory. Every  call to an endpoint is like a blank slate. It's like talking with Einstein with sever amnesia.
+
+![Hello World!](assets/forgetful-robot.svg)
 
 And I bet you've heard everyone are talking about "context". If humans have a conversation - there is a context that they share. LLM has no conversation context unless you keep it.
 
