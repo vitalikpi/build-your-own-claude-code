@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 260" role="img">
-  <title>Arthur Dent tells a robot his name. Moments later he asks the robot what his name is, and the robot replies “I don’t know”.</title>
+  <title>Arthur Dent tells a model his name. Moments later he asks the model what his name is, and the model replies “I don’t know”.</title>
 
   <!-- ===== STYLES =====
        Everything the drawing needs lives inside this file, so it looks
@@ -8,14 +8,14 @@
     svg {
       --muted: #6b7a93;
       --person: #2f6fed;
-      --robot: #13987f;
+      --model: #13987f;
     }
     /* Dark mode: follows the viewer's system/browser setting */
     @media (prefers-color-scheme: dark) {
       svg {
         --muted: #8a98b3;
         --person: #4d86ff;
-        --robot: #1fb497;
+        --model: #1fb497;
       }
     }
     text {
@@ -25,7 +25,7 @@
     .face          { font-size: 64px; }
     .wire          { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 4 6; }
     .bubble-person { fill: var(--person); }
-    .bubble-robot  { fill: var(--robot); }
+    .bubble-model  { fill: var(--model); }
     .bubble-text   { fill: #fff; font-size: 17px; font-weight: 700; }
     .caption       { fill: var(--muted); font-size: 18px; font-weight: 700; }
   </style>
@@ -41,7 +41,7 @@
     <set attributeName="opacity" to="1" begin="m4.end" end="rest.end"/>
   </text>
 
-  <!-- ===== THE ROBOT (right) =====
+  <!-- ===== THE MODEL (right) =====
        A nod to Marvin the Paranoid Android: instead of a cheery bob, it gives a
        slow, defeated little "sigh-droop" each time it has to reply. -->
   <text class="face" x="520" y="152" text-anchor="middle">🤖
@@ -49,7 +49,7 @@
                       values="0 0; 0 9; 0 0" dur="0.7s" begin="m2.begin; m4.begin"/>
   </text>
 
-  <!-- ===== STEP 1: "Hello my name is Arthur Dent!" (person → robot) ===== -->
+  <!-- ===== STEP 1: "Hello my name is Arthur Dent!" (person → model) ===== -->
   <g opacity="0">
     <rect class="bubble-person" x="-132" y="-18" width="264" height="36" rx="18"/>
     <text class="bubble-text" x="0" y="6" text-anchor="middle">Hello my name is Arthur Dent!</text>
@@ -59,9 +59,9 @@
                    calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
   </g>
 
-  <!-- ===== STEP 2: "Good" (robot → person) ===== -->
+  <!-- ===== STEP 2: "Good" (model → person) ===== -->
   <g opacity="0">
-    <rect class="bubble-robot" x="-42" y="-18" width="84" height="36" rx="18"/>
+    <rect class="bubble-model" x="-42" y="-18" width="84" height="36" rx="18"/>
     <text class="bubble-text" x="0" y="6" text-anchor="middle">Good</text>
     <set attributeName="opacity" to="1" begin="m2.begin" end="m2.end"/>
     <animateMotion id="m2" path="M 450 175 L 150 175"
@@ -69,7 +69,7 @@
                    calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
   </g>
 
-  <!-- ===== STEP 3: "What is my name?" (person → robot) ===== -->
+  <!-- ===== STEP 3: "What is my name?" (person → model) ===== -->
   <g opacity="0">
     <rect class="bubble-person" x="-82" y="-18" width="164" height="36" rx="18"/>
     <text class="bubble-text" x="0" y="6" text-anchor="middle">What is my name?</text>
@@ -79,9 +79,9 @@
                    calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
   </g>
 
-  <!-- ===== STEP 4: "I don't know" (robot → person) ===== -->
+  <!-- ===== STEP 4: "I don't know" (model → person) ===== -->
   <g opacity="0">
-    <rect class="bubble-robot" x="-66" y="-18" width="132" height="36" rx="18"/>
+    <rect class="bubble-model" x="-66" y="-18" width="132" height="36" rx="18"/>
     <text class="bubble-text" x="0" y="6" text-anchor="middle">I don’t know</text>
     <set attributeName="opacity" to="1" begin="m4.begin" end="m4.end"/>
     <animateMotion id="m4" path="M 450 175 L 150 175"
@@ -93,13 +93,13 @@
   <text class="caption" x="300" y="240" text-anchor="middle" opacity="0">1. Arthur says “Hello my name is Arthur Dent!”
     <set attributeName="opacity" to="1" begin="m1.begin" end="m2.begin"/>
   </text>
-  <text class="caption" x="300" y="240" text-anchor="middle" opacity="0">2. The robot replies “Good”
+  <text class="caption" x="300" y="240" text-anchor="middle" opacity="0">2. The model replies “Good”
     <set attributeName="opacity" to="1" begin="m2.begin" end="m3.begin"/>
   </text>
   <text class="caption" x="300" y="240" text-anchor="middle" opacity="0">3. Arthur asks “What is my name?”
     <set attributeName="opacity" to="1" begin="m3.begin" end="m4.begin"/>
   </text>
-  <text class="caption" x="300" y="240" text-anchor="middle" opacity="0">4. The robot replies “I don’t know”
+  <text class="caption" x="300" y="240" text-anchor="middle" opacity="0">4. The model replies “I don’t know”
     <set attributeName="opacity" to="1" begin="m4.begin" end="m4.end"/>
   </text>
   <text class="caption" x="300" y="240" text-anchor="middle" opacity="0">Don’t Panic — it just doesn’t remember

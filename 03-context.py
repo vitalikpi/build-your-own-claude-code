@@ -1,4 +1,4 @@
-# Step 2. Chat
+# Step 2. Chat with context
 
 import json
 import os
