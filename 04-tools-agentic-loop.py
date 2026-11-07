@@ -81,7 +81,7 @@ def bash_tool(command):
         }
     }
     """
-    result = subprocess.run(command, stdout=subprocess.PIPE, shell=True)
+    result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
     return result.stdout.decode('utf-8')
 
 # Assemble JSON array.

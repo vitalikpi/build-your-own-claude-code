@@ -184,7 +184,7 @@ def bash_tool(command):
         }
     }
     """
-    result = subprocess.run(command, stdout=subprocess.PIPE, shell=True)
+    result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
     return result.stdout.decode('utf-8')
 
 # Assemble JSON array.
@@ -256,7 +256,7 @@ def run_loop(messages, tools): # this is an agentic loop
             print(model_response)
             # add the model response back to the context
             messages.append({"role": "assistant", "content": model_response})
-            break
+            return model_response
 
 while True: # this a "chat" loop
     prompt = input("> ")
