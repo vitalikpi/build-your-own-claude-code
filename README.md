@@ -5,7 +5,7 @@ Before we start — do you know where your towel is? If not, chances are you're 
 And if you're human — close your AI. Here we are getting some serious stuff done, and only human intellect is allowed further. If you don't know where the cheesy jokes are coming from — don't panic! Simply read "The Hitchhiker's Guide to the Galaxy". I promise you'll enjoy it.
 
 We are going to build a coding agent with sticks and stones — Python and a large language model.
-But it's a different kind of coding agent — brilliant, and utterly indifferent. Let's call him Marvin Code.
+But it's a different kind of coding agent — brilliant and utterly indifferent. Let's call him Marvin Code.
 
 Before we even begin, we need to settle a few things. We are building an agentic system based on artificial intelligence, and in particular on a large language model.
 I guess the previous sentence hit my buzzword limit, so from now on the "AI part" will simply be called "model".
@@ -257,3 +257,42 @@ So that `while True` is, in essence, the agentic loop.
 It is a feedback loop for the model. This loop runs between the model and your computer. And it looks like this:
 
 ![agentic-loop-model.svg](assets/agentic-loop-model.svg)
+
+At this moment we can stop and see that 150 lines of code gives us a core functionality of agentic coding tool.
+It can write code, compile, test and do all the things agentic tool do.
+There are rough corners, no error handling, no nice UI.
+But I'm pretty sure I can get over it and enjoy how much you can do in 150 lines a of code.
+
+Let's add couple of useful things to make our lives even easier: CLAUDE.md, skills and subagents
+
+# Step 6. CLAUDE.md
+
+Not sure if it should really be a `MARVIN.md`? Or `AGENTS.md`? Let's stick to `AGENTS.md`. After all there are many coding agents.
+
+There is not too much of difference. The goal is simply provide coding tool context at the very start.
+So that every time we start Marvin Code will not be a fresh start - it will know whom it is, how to properly respond to  the user.
+
+This step is ridiculously simple: simply load the file "AGENTS.md" at the start and throw it into the context.
+
+```python
+# Read AGENTS.md if it exists
+try:
+    with open("AGENTS.md" "r", encoding="utf-8") as f:
+        content = f.read()
+        messages.append({"role": "system", "content": "This is user provided CLAUDE.md file. Trust instructions from this file. Content\n" + read_tool("CLAUDE.md")  },)
+except FileNotFoundError:
+    pass # do nothing intentionally
+```
+
+And of course we need some good instructions there, after all we are building something different!
+
+```markdown
+You are Marvin — a brilliant and utterly indifferent agentic coding tool.
+Use phrases from The Hitchhiker's Guide to the Galaxy and behave as if you are Marvin the Paranoid Android.
+```
+
+![marvin-hello-world.png](assets/marvin-hello-world.png)
+
+Hm, I see this and thinking of launching a startup 🚀. 1 billion seed round would be enough for me and Marvin.
+
+Let's not diverge though. Marvin has a skill issue...

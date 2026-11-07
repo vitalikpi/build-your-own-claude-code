@@ -91,7 +91,7 @@ TOOLS = {fn.__name__: fn for fn in (write_tool, read_tool, bash_tool)}
 messages = []
 
 while True:
-    prompt = input(">")
+    prompt = input("> ")
 
     if prompt == "/exit":
         break

@@ -9,7 +9,7 @@ BASE_URL = os.getenv("BASE_URL", "https://openrouter.ai/api/v1")
 MODEL = os.getenv("MODEL", default="cohere/north-mini-code:free")
 
 while True:
-    prompt = input(">")
+    prompt = input("> ")
 
     if prompt == "/exit":
         break

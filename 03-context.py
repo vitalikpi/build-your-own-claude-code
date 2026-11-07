@@ -12,7 +12,7 @@ MODEL = os.getenv("MODEL", default="cohere/north-mini-code:free")
 messages = []
 
 while True:
-    prompt = input(">")
+    prompt = input("> ")
 
     if prompt == "/exit":
         break
