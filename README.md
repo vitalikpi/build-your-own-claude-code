@@ -297,20 +297,20 @@ Use phrases from The Hitchhiker's Guide to the Galaxy and behave as if you are M
 
 Hm, I see this and I'm thinking of launching a startup 🚀. A $1 billion seed round would be enough for me and Marvin.
 
-Let's not diverge though. Marvin has a skill issue...
+Let's not digress, though. Marvin has a skill issue...
 
 ## Step 6. Skills
 
-First of all, why in the world would we need something like skill? And what is a skill?
+First of all, why in the world would we need something like a skill? And what is a skill?
 
-In essence skill is a script, written in English.
-So if you ever found your self repeating the same instruction again again - that's when you need a skill.
-As scripts, skills have arguments and a bit of technicalities.
+In essence, a skill is a script written in English.
+So if you ever find yourself repeating the same instruction again and again — that's when you need a skill.
+Like scripts, skills have arguments and a few technicalities.
 
-You call the script using `/`. For example `/panic` or `/babelfish hola` where `hola` is and argument.
-Also you can stack skills: `/echo /babelfish "Hola, Amigo!"`
+You call the script using `/`. For example, `/panic` or `/babelfish hola`, where `hola` is an argument.
+You can also stack skills: `/echo /babelfish "Hola, Amigo!"`
 
-The skill itself has pretty simple structure:
+The skill itself has a pretty simple structure:
 
 ```markdown
 ---
@@ -324,14 +324,14 @@ Translate the following text into clear, natural English: $ARGUMENTS
 Return ONLY the English translation, on a single line. Do not add notes, explanations, the original text, or quotation marks.
 ```
 
-The part in between of `---` is called frontmatter. It's attribute of the skill.
+The part between the `---` lines is called frontmatter. It holds the attributes of the skill.
 
-I think at the moment you are bored to death and I get you.
-After all we are doing AI here, reading files and expanding variables were definitely not on the your list today.
+I think by now you are bored to death, and I get you.
+After all, we are doing AI here — reading files and expanding variables were definitely not on your list today.
 
-I get it, but at the same time - such a simple thing making so much difference.
-When you have skills for every routine task - you can simply type `/skill bla bla bla`
-sit back and relax while agent is following your instructions!
+I get it, but at the same time — such a simple thing makes so much difference.
+When you have skills for every routine task, you can simply type `/skill bla bla bla`,
+sit back and relax while the agent follows your instructions!
 
 Let's do it!
 
@@ -367,7 +367,7 @@ def expand_skill(skill_name, skill_arguments):
             arg_no = int(shorthand.group(1))
             return skill_arguments[arg_no] if 0 <= arg_no < len(skill_arguments) else match_str
 
-        fullname = re.match(r"\$ARGUMENTS\[(\d+)]", match_str) # a fullname like $ARGUMENTS[$1]
+        fullname = re.match(r"\$ARGUMENTS\[(\d+)]", match_str) # a fullname like $ARGUMENTS[1]
         if fullname:
             arg_no = int(fullname.group(1))
             return skill_arguments[arg_no] if 0 <= arg_no < len(skill_arguments) else match_str
@@ -405,9 +405,9 @@ def expand_prompt(prompt):
     return result
 ```
 
-Told ya? It's a boring glob with couple functions to expand arguments. That's all!
+Told ya! It's a boring `glob` with a couple of functions to expand arguments. That's all!
 
-Couple things that worth attention. A system prompt telling the model about existence of skills.
+A couple of things are worth attention. First, a system prompt telling the model that skills exist:
 ```python
 messages = [
     {
@@ -422,14 +422,14 @@ messages = [
 ]
 ```
 
-And a skill tool. Why would we need that? It's because it's not only you who call skills!
-The model itself can call skill too. You can see it with Claude.
-When you politely ask `can you please review my code` it will likely call the `/code-review` skill for you.
+Second, a skill tool. Why would we need that? Because it's not only you who calls skills!
+The model itself can call skills too. You can see it with Claude.
+When you politely ask `can you please review my code`, it will likely call the `/code-review` skill for you.
 
-This is already a lengthy chapter but we need to ship couple of skills with our coding tool, just like Claude Code does.
+This is already a lengthy chapter, but we need to ship a couple of skills with our coding tool, just like Claude Code does.
 
-Ours will not be much different - `/morning` and `/code-review` just as a starter kit.
-You can see those here  [code-review](.agents/skills/code-review/SKILL.md), [morning](.agents/skills/morning/SKILL.md)
+Ours will not be much different — `/morning` and `/code-review` as a starter kit.
+You can see them here: [code-review](.agents/skills/code-review/SKILL.md), [morning](.agents/skills/morning/SKILL.md).
 
-I will wrap it up here and leave the stacking experiments to you my reader (honestly I could not come up with idea of a stacking skill).
+I will wrap it up here and leave the stacking experiments to you, my reader (honestly, I could not come up with an idea for a stacking skill).
 
