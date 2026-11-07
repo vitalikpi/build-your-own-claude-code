@@ -138,42 +138,42 @@ Before we start with tools, step back and think: how is something on a remote co
 
 The answer is — the model will tell you. And there is a special way to do it, called structured output.
 
-And how the model is going to understand that we are giving it tools? Well it's simple - we are going to tell the model.
-As you guessed - in a structured way.
+And how is the model going to understand that we are giving it tools? Well, it's simple — we are going to tell the model.
+As you guessed — in a structured way.
 
-To be fair - we are not going to do any heavy lifting here. We'll simply user the API capabilities.
-And what ever is under the hood - will do the heavy lifting for us. Since we are using OpenAI-style API, we'll simply stick to that.
+To be fair — we are not going to do any heavy lifting here. We'll simply use the API capabilities,
+and whatever is under the hood will do the heavy lifting for us. Since we are using an OpenAI-style API, we'll simply stick to that.
 
-So, the way to tell the model about existence of tools is to give it array of JSON objects like this:
+So, the way to tell the model that tools exist is to give it an array of JSON objects like this:
 ```json
 {
-        "type": "function",
-        "function": {
-            "name": "write_tool",
-            "description": "Write content to a file",
-            "parameters": {
-                "type": "object",
-                "required": ["file_path", "content"],
-                "properties": {
-                    "file_path": {
-                        "type": "string",
-                        "description": "The path of the file to write to"
-                    },
-                    "content": {
-                        "type": "string",
-                        "description": "The content to write to the file"
-                    }
+    "type": "function",
+    "function": {
+        "name": "write_tool",
+        "description": "Write content to a file",
+        "parameters": {
+            "type": "object",
+            "required": ["file_path", "content"],
+            "properties": {
+                "file_path": {
+                    "type": "string",
+                    "description": "The path of the file to write to"
+                },
+                "content": {
+                    "type": "string",
+                    "description": "The content to write to the file"
                 }
             }
         }
     }
+}
 ```
 
-Man, it is wordy! But at the same time it's a simple manifest - the name, description, arguments.
+Man, it is wordy! But at the same time it's a simple manifest — the name, description and arguments.
 
-Marvin Code will have three tools: read/write a file and bash.
+Marvin Code will have three tools: read a file, write a file, and bash.
 
-Here is how we hook it up.
+Here is how we hook them up.
 
 ```python
 def write_tool(file_path, content):
@@ -203,17 +203,17 @@ def bash_tool(command):
 TOOLS = {fn.__name__: fn for fn in (write_tool, read_tool, bash_tool)}
 ```
 
-And when we do a a reequest, we always pass that `TOOLS` array:
+And when we make a request, we always pass the manifests from `TOOLS`:
 
 ```python
 req_body = json.dumps(
     {"model": MODEL, "messages": messages, "tools": [json.loads(fn.__doc__) for fn in TOOLS.values()]}).encode()
 ```
 
-Lot of lines.
-Yet very simple - we are simply telling the model: "here are the tools I have for you - tell me if you want to invoke any"
+Lots of lines.
+Yet it's very simple — we are simply telling the model: "here are the tools I have for you — tell me if you want to invoke any."
 
-Now the last part - handling a tool call:
+Now the last part — handling a tool call:
 ```python
     while True:
         # ...
@@ -250,10 +250,10 @@ Now the last part - handling a tool call:
             break
 ```
 
-However if you add only the tools and plumbing to call them it will not be enough.
-The model should know about the results how the tool call ended - did it fail or succeed? Is there any action points?
-So that `white True` - is in essence is agentic loop. 
+However, if you add only the tools and the plumbing to call them, it will not be enough.
+The model should know how the tool call ended — did it fail or succeed? Are there any action points?
+So that `while True` is, in essence, the agentic loop.
 
-It is a feedback loop for a model. This loop is between model and your computer. And  it looks like this.
+It is a feedback loop for the model. This loop runs between the model and your computer. And it looks like this:
 
 ![agentic-loop-model.svg](assets/agentic-loop-model.svg)
