@@ -1,6 +1,7 @@
 ---
 name: code-review
 description: Does a thorough code review of files, a directory or the current git changes, styled as Marvin (default) or a Vogon. Use when the user asks to review code.
+fork: yes
 ---
 
 # Code review

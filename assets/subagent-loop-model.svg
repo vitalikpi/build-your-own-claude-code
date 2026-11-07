@@ -1,0 +1,190 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 335" role="img">
+  <title>A person asks the model to “review marvin.py”. The model calls the code-review skill, which has fork: yes, so a subagent is spawned with a fresh, empty context. The subagent runs its own loop with the computer: it reads marvin.py and gets the file back. Then it returns only the review to the model, and its context is thrown away. The model tells the person: here’s your review.</title>
+
+  <!-- ===== STYLES =====
+       Same look as agentic-loop-model.svg, plus one extra colour for the subagent. -->
+  <style>
+    svg {
+      --muted: #6b7a93;
+      --person: #2f6fed;
+      --robot: #13987f;
+      --subagent: #e0782a;
+      --computer: #7c4ddc;
+    }
+    /* Dark mode: follows the viewer's system/browser setting */
+    @media (prefers-color-scheme: dark) {
+      svg {
+        --muted: #8a98b3;
+        --person: #4d86ff;
+        --robot: #1fb497;
+        --subagent: #f08c42;
+        --computer: #9466f0;
+      }
+    }
+    text {
+      /* No web fonts in an image, so use fonts already on the computer */
+      font-family: ui-rounded, "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+    .face            { font-size: 64px; }
+    .name            { fill: var(--muted); font-size: 14px; font-weight: 700; }
+    .context         { fill: var(--muted); font-size: 14px; font-weight: 700; }
+    .context-sub     { fill: var(--subagent); font-size: 14px; font-weight: 700; }
+    .wire            { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 4 6; }
+    .loop            { fill: none; stroke: var(--subagent); stroke-width: 2; stroke-dasharray: 8 6; }
+    .loop-label      { fill: var(--subagent); font-size: 15px; font-weight: 700; }
+    .bubble-person   { fill: var(--person); }
+    .bubble-robot    { fill: var(--robot); }
+    .bubble-subagent { fill: var(--subagent); }
+    .bubble-computer { fill: var(--computer); }
+    .bubble-text     { fill: #fff; font-size: 17px; font-weight: 700; }
+    .code            { font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .caption         { fill: var(--muted); font-size: 18px; font-weight: 700; }
+  </style>
+
+  <!-- Dashed line person ⇄ model is always there -->
+  <line class="wire" x1="110" y1="130" x2="250" y2="130"/>
+
+  <!-- Lines to the subagent and from the subagent to the computer exist only while the subagent does -->
+  <g opacity="0">
+    <line class="wire" x1="330" y1="130" x2="470" y2="130"/>
+    <line class="wire" x1="550" y1="130" x2="690" y2="130"/>
+    <set attributeName="opacity" to="1" begin="fork.end" end="report.end"/>
+  </g>
+
+  <!-- ===== THE SUBAGENT LOOP (subagent ⇄ computer) ===== -->
+  <g opacity="0">
+    <rect class="loop" x="445" y="28" width="350" height="262" rx="24"/>
+    <text class="loop-label" x="620" y="20" text-anchor="middle">🔁 the subagent’s own loop</text>
+    <set attributeName="opacity" to="1" begin="read.begin" end="report.begin"/>
+  </g>
+
+  <!-- ===== THE PERSON ===== -->
+  <text class="face" x="70" y="152" text-anchor="middle">🙂</text>
+  <text class="name" x="70" y="192" text-anchor="middle">you</text>
+
+  <!-- ===== THE MODEL (main agent) ===== -->
+  <text class="face" x="290" y="152" text-anchor="middle">🤖
+    <!-- a little nod each time a message arrives -->
+    <animateTransform attributeName="transform" type="translate"
+                      values="0 0; 0 -12; 0 0" dur="0.4s"
+                      begin="ask.end; report.end"/>
+  </text>
+  <text class="name" x="290" y="192" text-anchor="middle">model</text>
+  <!-- the main context: it never sees marvin.py, only the review -->
+  <text class="context" x="290" y="272" text-anchor="middle">📜 main context</text>
+
+  <!-- ===== THE SUBAGENT: born when the skill is forked, gone when it reports back ===== -->
+  <g opacity="0">
+    <text class="face" x="510" y="152" text-anchor="middle">🤖
+      <animateTransform attributeName="transform" type="translate"
+                        values="0 0; 0 -12; 0 0" dur="0.4s"
+                        begin="fork.end; file.end"/>
+    </text>
+    <text class="name" x="510" y="192" text-anchor="middle" style="fill: var(--subagent)">subagent</text>
+    <set attributeName="opacity" to="1" begin="fork.end" end="report.end"/>
+  </g>
+
+  <!-- the subagent's context: empty → holds marvin.py → thrown away -->
+  <text class="context-sub" x="620" y="272" text-anchor="middle" opacity="0">📄 fresh, empty context
+    <set attributeName="opacity" to="1" begin="fork.end" end="file.end"/>
+  </text>
+  <text class="context-sub" x="620" y="272" text-anchor="middle" opacity="0">📄 context: skill + marvin.py
+    <set attributeName="opacity" to="1" begin="file.end" end="report.end"/>
+  </text>
+  <text class="context-sub" x="510" y="272" text-anchor="middle" opacity="0">🗑️ context thrown away
+    <set attributeName="opacity" to="1" begin="report.end" end="reply.begin"/>
+  </text>
+
+  <!-- ===== THE COMPUTER ===== -->
+  <text class="face" x="730" y="152" text-anchor="middle">💻
+    <!-- the computer reacts when the subagent gives it a command -->
+    <animateTransform attributeName="transform" type="translate"
+                      values="0 0; 0 -10; 0 0" dur="0.4s"
+                      begin="read.end"/>
+  </text>
+  <text class="name" x="730" y="192" text-anchor="middle">computer</text>
+
+  <!-- Requests travel along the top lane (y=62), answers along the bottom lane (y=232) -->
+
+  <!-- ===== STEP 1: "review marvin.py" (person → model) ===== -->
+  <g opacity="0">
+    <rect class="bubble-person" x="-90" y="-18" width="180" height="36" rx="18"/>
+    <text class="bubble-text" x="0" y="6" text-anchor="middle">review marvin.py</text>
+    <set attributeName="opacity" to="1" begin="ask.begin" end="ask.end"/>
+    <animateMotion id="ask" path="M 120 62 L 250 62"
+                   begin="0.5s; rest.end" dur="1.6s"
+                   calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+  </g>
+
+  <!-- ===== STEP 2: skill_tool("code-review") with fork: yes (model → subagent) ===== -->
+  <g opacity="0">
+    <rect class="bubble-robot" x="-108" y="-18" width="216" height="36" rx="18"/>
+    <text class="bubble-text code" x="0" y="6" text-anchor="middle">🍴 fork code-review</text>
+    <set attributeName="opacity" to="1" begin="fork.begin" end="fork.end"/>
+    <animateMotion id="fork" path="M 330 62 L 470 62"
+                   begin="ask.end + 0.4s" dur="1.6s"
+                   calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+  </g>
+
+  <!-- ===== STEP 3: "read marvin.py" (subagent → computer) ===== -->
+  <g opacity="0">
+    <rect class="bubble-subagent" x="-92" y="-18" width="184" height="36" rx="18"/>
+    <text class="bubble-text" x="0" y="6" text-anchor="middle">📖 read marvin.py</text>
+    <set attributeName="opacity" to="1" begin="read.begin" end="read.end"/>
+    <animateMotion id="read" path="M 550 62 L 690 62"
+                   begin="fork.end + 0.8s" dur="1.6s"
+                   calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+  </g>
+
+  <!-- ===== STEP 4: the file comes back (computer → subagent) ===== -->
+  <g opacity="0">
+    <rect class="bubble-computer" x="-90" y="-18" width="180" height="36" rx="18"/>
+    <text class="bubble-text" x="0" y="6" text-anchor="middle">📄 here’s the file</text>
+    <set attributeName="opacity" to="1" begin="file.begin" end="file.end"/>
+    <animateMotion id="file" path="M 690 232 L 550 232"
+                   begin="read.end + 0.4s" dur="1.6s"
+                   calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+  </g>
+
+  <!-- ===== STEP 5: only the result goes back (subagent → model) ===== -->
+  <g opacity="0">
+    <rect class="bubble-subagent" x="-72" y="-18" width="144" height="36" rx="18"/>
+    <text class="bubble-text" x="0" y="6" text-anchor="middle">📋 the review</text>
+    <set attributeName="opacity" to="1" begin="report.begin" end="report.end"/>
+    <animateMotion id="report" path="M 470 232 L 330 232"
+                   begin="file.end + 0.8s" dur="1.6s"
+                   calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+  </g>
+
+  <!-- ===== STEP 6: "here's your review" (model → person) ===== -->
+  <g opacity="0">
+    <rect class="bubble-robot" x="-106" y="-18" width="212" height="36" rx="18"/>
+    <text class="bubble-text" x="0" y="6" text-anchor="middle">here’s your review 📜</text>
+    <set attributeName="opacity" to="1" begin="reply.begin" end="reply.end"/>
+    <animateMotion id="reply" path="M 250 232 L 120 232"
+                   begin="report.end + 0.8s" dur="1.6s"
+                   calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+  </g>
+
+  <!-- ===== CAPTIONS ===== -->
+  <text class="caption" x="400" y="320" text-anchor="middle" opacity="0">1. You ask: “review marvin.py”
+    <set attributeName="opacity" to="1" begin="ask.begin" end="fork.begin"/>
+  </text>
+  <text class="caption" x="400" y="320" text-anchor="middle" opacity="0">2. code-review says fork: yes, so the model spawns a subagent
+    <set attributeName="opacity" to="1" begin="fork.begin" end="read.begin"/>
+  </text>
+  <text class="caption" x="400" y="320" text-anchor="middle" opacity="0">3. The subagent runs its own loop, starting from an empty context
+    <set attributeName="opacity" to="1" begin="read.begin" end="file.begin"/>
+  </text>
+  <text class="caption" x="400" y="320" text-anchor="middle" opacity="0">4. marvin.py lands in the subagent’s context, not the main one
+    <set attributeName="opacity" to="1" begin="file.begin" end="report.begin"/>
+  </text>
+  <text class="caption" x="400" y="320" text-anchor="middle" opacity="0">5. Only the review goes back; the subagent’s context is thrown away
+    <set attributeName="opacity" to="1" begin="report.begin" end="reply.begin"/>
+  </text>
+  <text class="caption" x="400" y="320" text-anchor="middle" opacity="0">6. The model tells you: here’s your review
+    <set attributeName="opacity" to="1" begin="reply.begin" end="rest.end"/>
+    <!-- Invisible 3-second timer named "rest"; the loop restarts when it ends -->
+    <animate id="rest" attributeName="opacity" from="1" to="1" begin="reply.end" dur="3s"/>
+  </text>
+</svg>

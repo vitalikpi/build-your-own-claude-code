@@ -434,3 +434,44 @@ You can see them here: [code-review](.agents/skills/code-review/SKILL.md), [morn
 I will wrap it up here and leave the stacking experiments to you, my reader (honestly, I could not come up with an idea for a stacking skill).
 
 ![code-review-vogon.png](assets/code-review-vogon.png)
+
+## Step 7. Subagents
+
+I promise this is the last step. We have to have it here. After all, what if you want to spin up a subagent?
+And what is a subagent? In Claude, it's like a process fork, but with a minimal context. Why would you need one?
+I'd say for a couple of reasons:
+1. You want it done in parallel.
+2. You want to keep the current context out of the task.
+
+Here we will not do the parallel part. I don't want to bore you to death. However, the second part is a perfect exercise.
+
+Step back and think: what does it look like? A process fork? A function call? Recursion?
+
+To me, the subagent sounds more like a function call.
+The main agent gives a particular task to a subagent, with limited context.
+We are talking about context again because it costs money! Let's say you want to review a file using the `/code-review` skill.
+And then review another, unrelated file? Why would you carry the context of one review over to another?
+It may hurt the review quality, and it costs more money.
+
+I will not torture you with code changes. The essence of the change is that we extracted the agentic loop into a function.
+And in the skill tool, we check if the skill should be forked into a subagent.
+
+```python
+if SKILLS[skill_name].get("fork", "false").strip().lower() in ("true", "1", "yes", "on"):
+    # What happens if we are in forked loop? should we allow this? It's your call!
+    subagent_messages = [{"role": "user", "content": expand_skill(skill_name, skill_args.split())}] # disclose skills? your call!
+    subagent_tools = {} # should subagent get all tools? none? it's your call!
+    return run_loop(subagent_messages, subagent_tools) # run the subagent in its own loop with a separate context
+else:
+    return expand_skill(skill_name, skill_args.split())
+```
+
+![subagent-loop-model.svg](assets/subagent-loop-model.svg)
+
+## Conclusion
+
+Just like that, in 300 lines of code, we have our own agentic coding tool.
+300 lines is 3 orders of magnitude less than the actual Claude Code. Why does such a simple tool need so much code?
+Here I can only guess. Claude Code has a UI: it is a TypeScript app with React rendered to the console.
+You don't get a UI like that without all the pain of managing state. Also, it wasn't written by humans.
+So I'd say it's totally normal to have 500,000 lines of code for a product like that.
