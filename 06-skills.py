@@ -2,7 +2,9 @@
 
 import json
 import os
+import re
 import subprocess
+from pathlib import Path
 from urllib.request import Request, urlopen
 
 API_KEY = os.getenv("API_KEY")
@@ -13,7 +15,7 @@ MODEL = os.getenv("MODEL", default="cohere/north-mini-code:free")
 
 SKILLS = {}  # key=name, value={ "description": "...", "path": "path to a SKILL.md file"}
 
-for file in list(Path(".claude/skills").rglob("*/SKILL.md")):
+for file in list(Path(".agents/skills").rglob("*/SKILL.md")):
     with open(file, "r", encoding="utf-8") as f:
         content = f.read()
         frontmatter_text = content.split("---")[1] # Never do this in PROD ;-)

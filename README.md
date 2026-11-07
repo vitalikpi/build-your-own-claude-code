@@ -433,3 +433,4 @@ You can see them here: [code-review](.agents/skills/code-review/SKILL.md), [morn
 
 I will wrap it up here and leave the stacking experiments to you, my reader (honestly, I could not come up with an idea for a stacking skill).
 
+![code-review-vogon.png](assets/code-review-vogon.png)
