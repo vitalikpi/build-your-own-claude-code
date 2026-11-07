@@ -155,7 +155,13 @@ def expand_skill(skill_name, skill_arguments):
     skill_content = skill["content"]
 
     # invoke `repl` for every `$` occurrence
-    return re.sub(r"\$[a-zA-Z\d\[\]]+", repl, skill_content)
+    expanded = re.sub(r"\$[a-zA-Z\d\[\]]+", repl, skill_content)
+
+    # no placeholder took the arguments? append them, just like Claude Code does
+    if skill_arguments and expanded == skill_content:
+        expanded += "\n\nARGUMENTS: " + " ".join(skill_arguments)
+
+    return expanded
 
 def expand_prompt(prompt):
     result = []

@@ -109,9 +109,8 @@ def skill_tool(skill_name, skill_args=""):
     if skill_name not in SKILLS:
         return f"skill {skill_name} not found"
 
-    if SKILLS[skill_name].get("fork", "false").strip().lower() in ("true", "1", "yes", "on"):
-        # What happens if we are in forked loop? should we allow this? It's your call!
-        subagent_messages = [{"role": "user", "content": expand_skill(skill_name, skill_args.split())}] # disclose skills? your call!
+    if SKILLS[skill_name].get("context") == "fork":
+        subagent_messages = [{"role": "user", "content": expand_skill(skill_name, skill_args.split())}]
         return run_loop(subagent_messages, SUBAGENT_TOOLS)
     else:
         return expand_skill(skill_name, skill_args.split())
@@ -137,7 +136,6 @@ for file in list(Path(".agents/skills").rglob("*/SKILL.md")):
 
         SKILLS[skill_attributes["name"]] = skill_attributes
 
-
 def expand_skill(skill_name, skill_arguments):
     skill = SKILLS[skill_name]
 
@@ -162,7 +160,13 @@ def expand_skill(skill_name, skill_arguments):
     skill_content = skill["content"]
 
     # invoke `repl` for every `$` occurrence
-    return re.sub(r"\$[a-zA-Z\d\[\]]+", repl, skill_content)
+    expanded = re.sub(r"\$[a-zA-Z\d\[\]]+", repl, skill_content)
+
+    # no placeholder took the arguments? append them, just like Claude Code does
+    if skill_arguments and expanded == skill_content:
+        expanded += "\n\nARGUMENTS: " + " ".join(skill_arguments)
+
+    return expanded
 
 def expand_prompt(prompt):
     result = []
@@ -183,11 +187,12 @@ def expand_prompt(prompt):
                 break
 
         for skill_name in skills_to_call:
-            result.append(expand_skill(skill_name, skill_arguments))
+            should_fork = SKILLS[skill_name].get("context") == "fork"
+            result.append((should_fork, expand_skill(skill_name, skill_arguments)))
         if not skills_to_call:
-            result.append(prompt)
+            result.append((False, prompt))
     else:
-        result.append(prompt)
+        result.append((False, prompt))
 
     return result
 
@@ -264,6 +269,11 @@ while True: # this is a "chat" loop
     if prompt == "/exit":
         break
 
-    messages.append({"role": "user", "content": "\n".join(expand_prompt(prompt))})
-
-    run_loop(messages, TOOLS)
+    for fork_context, expanded_prompt in expand_prompt(prompt):
+        if fork_context:
+            subagent_response = run_loop([{"role": "user", "content": expanded_prompt}], SUBAGENT_TOOLS)
+            messages.append({"role": "user", "content": prompt})
+            messages.append({"role": "assistant", "content": subagent_response})
+        else:
+            messages.append({"role": "user", "content": expanded_prompt})
+            run_loop(messages, TOOLS)

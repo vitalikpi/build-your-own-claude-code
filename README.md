@@ -382,7 +382,13 @@ def expand_skill(skill_name, skill_arguments):
     skill_content = skill["content"]
 
     # invoke `repl` for every `$` occurrence
-    return re.sub(r"\$[a-zA-Z\d\[\]]+", repl, skill_content)
+    expanded = re.sub(r"\$[a-zA-Z\d\[\]]+", repl, skill_content)
+
+    # no placeholder took the arguments? append them, just like Claude Code does
+    if skill_arguments and expanded == skill_content:
+        expanded += "\n\nARGUMENTS: " + " ".join(skill_arguments)
+
+    return expanded
 
 def expand_prompt(prompt):
     result = []
@@ -463,11 +469,11 @@ It may hurt the review quality, and it costs more money.
 
 I will not torture you with code changes. The essence of the change is that we extracted the agentic loop into a function.
 And in the skill tool, we check if the skill should be forked into a subagent.
+A skill asks for it in its frontmatter with `context: fork` — the same key Claude Code uses.
 
 ```python
-if SKILLS[skill_name].get("fork", "false").strip().lower() in ("true", "1", "yes", "on"):
-    # What happens if we are in forked loop? should we allow this? It's your call!
-    subagent_messages = [{"role": "user", "content": expand_skill(skill_name, skill_args.split())}] # disclose skills? your call!
+if SKILLS[skill_name].get("context") == "fork":
+    subagent_messages = [{"role": "user", "content": expand_skill(skill_name, skill_args.split())}]
     return run_loop(subagent_messages, SUBAGENT_TOOLS)
 else:
     return expand_skill(skill_name, skill_args.split())
@@ -478,6 +484,28 @@ The subagent gets all the tools except the skill tool, so it cannot fork itself 
 ```python
 SUBAGENT_TOOLS = {fn.__name__: fn for fn in (write_tool, read_tool, bash_tool)} # do not give subagent a skill tool - it should not be able to recurse
 TOOLS = {fn.__name__: fn for fn in (write_tool, read_tool, bash_tool, skill_tool)}
+```
+
+But the model is not the only one calling skills — you can type `/code-review vogon marvin.py` yourself.
+So `expand_prompt` now also tells whether each skill should be forked:
+
+```python
+        for skill_name in skills_to_call:
+            should_fork = SKILLS[skill_name].get("context") == "fork"
+            result.append((should_fork, expand_skill(skill_name, skill_arguments)))
+```
+
+And the chat loop runs a forked skill in a subagent. Only the subagent's answer lands in the main context — everything it read along the way is thrown away:
+
+```python
+    for fork_context, expanded_prompt in expand_prompt(prompt):
+        if fork_context:
+            subagent_response = run_loop([{"role": "user", "content": expanded_prompt}], SUBAGENT_TOOLS)
+            messages.append({"role": "user", "content": prompt})
+            messages.append({"role": "assistant", "content": subagent_response})
+        else:
+            messages.append({"role": "user", "content": expanded_prompt})
+            run_loop(messages, TOOLS)
 ```
 
 ![subagent-loop-model.svg](assets/subagent-loop-model.svg)
