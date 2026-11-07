@@ -4,10 +4,10 @@ Before we start — do you know where your towel is? If not, chances are you're 
 
 And if you're human — close your AI. Here we are getting some serious stuff done, and only human intellect is allowed further. If you don't know where the cheesy jokes are coming from — don't panic! Simply read "The Hitchhiker's Guide to the Galaxy". I promise you'll enjoy it.
 
-We are going to build a coding agent with sticks and stones — Python and a model.
+We are going to build a coding agent with sticks and stones — Python and a large language model.
 But it's a different kind of coding agent — brilliant, and utterly indifferent. Let's call him Marvin Code.
 
-But before we even begin, we need to settle a few things. We are building an agentic system based on artificial intelligence, and in particular on a large language model.
+Before we even begin, we need to settle a few things. We are building an agentic system based on artificial intelligence, and in particular on a large language model.
 I guess the previous sentence hit my buzzword limit, so from now on the "AI part" will simply be called "model".
 
 ## Step 1. Hello World!
@@ -137,3 +137,123 @@ Before we start with tools, step back and think: how is something on a remote co
 (bash, read or write) on your computer?
 
 The answer is — the model will tell you. And there is a special way to do it, called structured output.
+
+And how the model is going to understand that we are giving it tools? Well it's simple - we are going to tell the model.
+As you guessed - in a structured way.
+
+To be fair - we are not going to do any heavy lifting here. We'll simply user the API capabilities.
+And what ever is under the hood - will do the heavy lifting for us. Since we are using OpenAI-style API, we'll simply stick to that.
+
+So, the way to tell the model about existence of tools is to give it array of JSON objects like this:
+```json
+{
+        "type": "function",
+        "function": {
+            "name": "write_tool",
+            "description": "Write content to a file",
+            "parameters": {
+                "type": "object",
+                "required": ["file_path", "content"],
+                "properties": {
+                    "file_path": {
+                        "type": "string",
+                        "description": "The path of the file to write to"
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "The content to write to the file"
+                    }
+                }
+            }
+        }
+    }
+```
+
+Man, it is wordy! But at the same time it's a simple manifest - the name, description, arguments.
+
+Marvin Code will have three tools: read/write a file and bash.
+
+Here is how we hook it up.
+
+```python
+def write_tool(file_path, content):
+    """
+    ... tool manifest
+    """
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(content)
+    return f"written {file_path}"
+
+def read_tool(file_path):
+    """
+    ... tool manifest
+    """
+    with open(file_path, "r", encoding="utf-8") as f:
+        content = f.read()
+    return content
+
+def bash_tool(command):
+    """
+    ... tool manifest
+    """
+    result = subprocess.run(command, stdout=subprocess.PIPE, shell=True)
+    return result.stdout.decode('utf-8')
+
+# Assemble JSON array.
+TOOLS = {fn.__name__: fn for fn in (write_tool, read_tool, bash_tool)}
+```
+
+And when we do a a reequest, we always pass that `TOOLS` array:
+
+```python
+req_body = json.dumps(
+    {"model": MODEL, "messages": messages, "tools": [json.loads(fn.__doc__) for fn in TOOLS.values()]}).encode()
+```
+
+Lot of lines.
+Yet very simple - we are simply telling the model: "here are the tools I have for you - tell me if you want to invoke any"
+
+Now the last part - handling a tool call:
+```python
+    while True:
+        # ...
+
+        message = resp_body["choices"][0]["message"]
+        messages.append(message)  # "I (the model) said this / asked for these tools"
+
+        if message.get("tool_calls"):
+            print(f"🔁 {message["content"]}")
+            for tool_call in message["tool_calls"]:
+                tool_name = tool_call["function"]["name"]
+                args = json.loads(tool_call["function"]["arguments"])
+
+                print(f"🔨 {tool_name}")
+
+                # select the tool the model named
+                tool = TOOLS.get(tool_name)
+                # a tool error becomes feedback, not a crash - the model sees it and self-corrects
+                try:
+                    result = tool(**args) if tool else f"tool {tool_name} not found"
+                except Exception as e:
+                    result = f"error running {tool_name}: {e!r}"
+
+                messages.append({  # "here's what that call produced"
+                    "role": "tool",
+                    "tool_call_id": tool_call["id"],  # must match the call's id
+                    "content": str(result),
+                })
+        else:
+            model_response = resp_body["choices"][0]["message"]["content"]
+            print(model_response)
+            # add the model response back to the context
+            messages.append({"role": "assistant", "content": model_response})
+            break
+```
+
+However if you add only the tools and plumbing to call them it will not be enough.
+The model should know about the results how the tool call ended - did it fail or succeed? Is there any action points?
+So that `white True` - is in essence is agentic loop. 
+
+It is a feedback loop for a model. This loop is between model and your computer. And  it looks like this.
+
+![agentic-loop-model.svg](assets/agentic-loop-model.svg)

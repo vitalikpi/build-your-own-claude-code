@@ -1,0 +1,184 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" role="img">
+  <title>A person asks the model to “build a ‘hello world’ app”. The model asks the computer to create hello.c, compile it with gcc and run ./hello, waiting for the computer’s answer after each step. Then the model tells the person: shipped!</title>
+
+  <!-- ===== STYLES =====
+       Everything the drawing needs lives inside this file, so it looks
+       the same wherever it's shown (GitHub, an <img> tag, opened directly). -->
+  <style>
+    svg {
+      --muted: #6b7a93;
+      --person: #2f6fed;
+      --robot: #13987f;
+      --computer: #7c4ddc;
+    }
+    /* Dark mode: follows the viewer's system/browser setting */
+    @media (prefers-color-scheme: dark) {
+      svg {
+        --muted: #8a98b3;
+        --person: #4d86ff;
+        --robot: #1fb497;
+        --computer: #9466f0;
+      }
+    }
+    text {
+      /* No web fonts in an image, so use fonts already on the computer */
+      font-family: ui-rounded, "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+    .face            { font-size: 64px; }
+    .wire            { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 4 6; }
+    .loop            { fill: none; stroke: var(--robot); stroke-width: 2; stroke-dasharray: 8 6; }
+    .loop-label      { fill: var(--robot); font-size: 15px; font-weight: 700; }
+    .bubble-person   { fill: var(--person); }
+    .bubble-robot    { fill: var(--robot); }
+    .bubble-computer { fill: var(--computer); }
+    .bubble-text     { fill: #fff; font-size: 17px; font-weight: 700; }
+    .code            { font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .caption         { fill: var(--muted); font-size: 18px; font-weight: 700; }
+  </style>
+
+  <!-- Dashed lines connecting the three -->
+  <line class="wire" x1="140" y1="130" x2="340" y2="130"/>
+  <line class="wire" x1="460" y1="130" x2="660" y2="130"/>
+
+  <!-- ===== THE LOOP (model ⇄ computer), shown while the model works ===== -->
+  <g opacity="0">
+    <rect class="loop" x="330" y="30" width="450" height="210" rx="24"/>
+    <text class="loop-label" x="555" y="22" text-anchor="middle">🔁 the agentic loop</text>
+    <set attributeName="opacity" to="1" begin="write.begin" end="ship.begin"/>
+  </g>
+
+  <!-- ===== THE PERSON (left) ===== -->
+  <text class="face" x="80" y="152" text-anchor="middle">🙂
+    <!-- hide while the person is excited at the end -->
+    <set attributeName="opacity" to="0" begin="ship.end" end="rest.end"/>
+  </text>
+  <text class="face" x="80" y="152" text-anchor="middle" opacity="0">🤑
+    <set attributeName="opacity" to="1" begin="ship.end" end="rest.end"/>
+  </text>
+
+  <!-- ===== THE MODEL (middle) ===== -->
+  <text class="face" x="400" y="152" text-anchor="middle">🤖
+    <!-- a little nod each time a message arrives -->
+    <animateTransform attributeName="transform" type="translate"
+                      values="0 0; 0 -12; 0 0" dur="0.4s"
+                      begin="ask.end; wrote.end; compiled.end; ran.end"/>
+  </text>
+
+  <!-- ===== THE COMPUTER (right) ===== -->
+  <text class="face" x="720" y="152" text-anchor="middle">💻
+    <!-- the computer reacts when the model gives it a command -->
+    <animateTransform attributeName="transform" type="translate"
+                      values="0 0; 0 -10; 0 0" dur="0.4s"
+                      begin="write.end; compile.end; run.end"/>
+  </text>
+
+  <!-- Requests travel along the top lane (y=70), answers along the bottom lane (y=200) -->
+
+  <!-- ===== STEP 1: "build a 'hello world' app" (person → model) ===== -->
+  <g opacity="0">
+    <rect class="bubble-person" x="-120" y="-18" width="240" height="36" rx="18"/>
+    <text class="bubble-text" x="0" y="6" text-anchor="middle">build a ‘hello world’ app</text>
+    <set attributeName="opacity" to="1" begin="ask.begin" end="ask.end"/>
+    <animateMotion id="ask" path="M 175 70 L 305 70"
+                   begin="0.5s; rest.end" dur="1.6s"
+                   calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+  </g>
+
+  <!-- ===== STEP 2: "create hello.c" (model → computer) ===== -->
+  <g opacity="0">
+    <rect class="bubble-robot" x="-90" y="-18" width="180" height="36" rx="18"/>
+    <text class="bubble-text" x="0" y="6" text-anchor="middle">✏️ create hello.c</text>
+    <set attributeName="opacity" to="1" begin="write.begin" end="write.end"/>
+    <animateMotion id="write" path="M 495 70 L 625 70"
+                   begin="ask.end + 0.4s" dur="1.6s"
+                   calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+  </g>
+
+  <!-- ===== STEP 3: "done" (computer → model) ===== -->
+  <g opacity="0">
+    <rect class="bubble-computer" x="-45" y="-18" width="90" height="36" rx="18"/>
+    <text class="bubble-text" x="0" y="6" text-anchor="middle">done ✓</text>
+    <set attributeName="opacity" to="1" begin="wrote.begin" end="wrote.end"/>
+    <animateMotion id="wrote" path="M 625 200 L 495 200"
+                   begin="write.end + 0.4s" dur="1.6s"
+                   calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+  </g>
+
+  <!-- ===== STEP 4: "$ gcc hello.c" (model → computer) ===== -->
+  <g opacity="0">
+    <rect class="bubble-robot" x="-80" y="-18" width="160" height="36" rx="18"/>
+    <text class="bubble-text code" x="0" y="6" text-anchor="middle">$ gcc hello.c</text>
+    <set attributeName="opacity" to="1" begin="compile.begin" end="compile.end"/>
+    <animateMotion id="compile" path="M 495 70 L 625 70"
+                   begin="wrote.end + 0.4s" dur="1.6s"
+                   calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+  </g>
+
+  <!-- ===== STEP 5: "done" (computer → model) ===== -->
+  <g opacity="0">
+    <rect class="bubble-computer" x="-45" y="-18" width="90" height="36" rx="18"/>
+    <text class="bubble-text" x="0" y="6" text-anchor="middle">done ✓</text>
+    <set attributeName="opacity" to="1" begin="compiled.begin" end="compiled.end"/>
+    <animateMotion id="compiled" path="M 625 200 L 495 200"
+                   begin="compile.end + 0.4s" dur="1.6s"
+                   calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+  </g>
+
+  <!-- ===== STEP 6: "$ ./hello" (model → computer) ===== -->
+  <g opacity="0">
+    <rect class="bubble-robot" x="-62" y="-18" width="124" height="36" rx="18"/>
+    <text class="bubble-text code" x="0" y="6" text-anchor="middle">$ ./hello</text>
+    <set attributeName="opacity" to="1" begin="run.begin" end="run.end"/>
+    <animateMotion id="run" path="M 495 70 L 625 70"
+                   begin="compiled.end + 0.4s" dur="1.6s"
+                   calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+  </g>
+
+  <!-- ===== STEP 7: "it says “hello, world!”" (computer → model) ===== -->
+  <g opacity="0">
+    <rect class="bubble-computer" x="-118" y="-18" width="236" height="36" rx="18"/>
+    <text class="bubble-text" x="0" y="6" text-anchor="middle">it says “hello, world!”</text>
+    <set attributeName="opacity" to="1" begin="ran.begin" end="ran.end"/>
+    <animateMotion id="ran" path="M 625 200 L 495 200"
+                   begin="run.end + 0.4s" dur="1.6s"
+                   calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+  </g>
+
+  <!-- ===== STEP 8: "shipped! 🚀" (model → person) ===== -->
+  <g opacity="0">
+    <rect class="bubble-robot" x="-70" y="-18" width="140" height="36" rx="18"/>
+    <text class="bubble-text" x="0" y="6" text-anchor="middle">shipped! 🚀</text>
+    <set attributeName="opacity" to="1" begin="ship.begin" end="ship.end"/>
+    <animateMotion id="ship" path="M 305 200 L 175 200"
+                   begin="ran.end + 0.4s" dur="1.6s"
+                   calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+  </g>
+
+  <!-- ===== CAPTIONS ===== -->
+  <text class="caption" x="400" y="280" text-anchor="middle" opacity="0">1. You ask: “build a ‘hello world’ app”
+    <set attributeName="opacity" to="1" begin="ask.begin" end="write.begin"/>
+  </text>
+  <text class="caption" x="400" y="280" text-anchor="middle" opacity="0">2. The model asks your computer to create hello.c
+    <set attributeName="opacity" to="1" begin="write.begin" end="wrote.begin"/>
+  </text>
+  <text class="caption" x="400" y="280" text-anchor="middle" opacity="0">3. The computer reports back: done
+    <set attributeName="opacity" to="1" begin="wrote.begin" end="compile.begin"/>
+  </text>
+  <text class="caption" x="400" y="280" text-anchor="middle" opacity="0">4. The model asks to compile it with gcc
+    <set attributeName="opacity" to="1" begin="compile.begin" end="compiled.begin"/>
+  </text>
+  <text class="caption" x="400" y="280" text-anchor="middle" opacity="0">5. Done again
+    <set attributeName="opacity" to="1" begin="compiled.begin" end="run.begin"/>
+  </text>
+  <text class="caption" x="400" y="280" text-anchor="middle" opacity="0">6. The model runs ./hello
+    <set attributeName="opacity" to="1" begin="run.begin" end="ran.begin"/>
+  </text>
+  <text class="caption" x="400" y="280" text-anchor="middle" opacity="0">7. The computer tells the model what it printed
+    <set attributeName="opacity" to="1" begin="ran.begin" end="ship.begin"/>
+  </text>
+  <text class="caption" x="400" y="280" text-anchor="middle" opacity="0">8. The model tells you: shipped!
+    <set attributeName="opacity" to="1" begin="ship.begin" end="rest.end"/>
+    <!-- Invisible 3-second timer named "rest"; the loop restarts when it ends -->
+    <animate id="rest" attributeName="opacity" from="1" to="1" begin="ship.end" dur="3s"/>
+  </text>
+</svg>
