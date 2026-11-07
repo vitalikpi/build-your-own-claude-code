@@ -6,7 +6,7 @@ Before we start — do you know where your towel is? If not, chances are you're 
 
 And if you're human — close your AI. Here we are getting some serious stuff done, and only human intellect is allowed further. If you don't know where the cheesy jokes are coming from — don't panic! Simply read "The Hitchhiker's Guide to the Galaxy". I promise you'll enjoy it.
 
-We are going to build a coding agent with sticks and stones — Python and a large language model.
+We are going to build a coding agent with sticks and stones — Python (3.12+) and a large language model (Haiku, but you can pick your favourite).
 But it's a different kind of coding agent — brilliant and utterly indifferent. Let's call him Marvin Code.
 
 Before we even begin, we need to settle a few things. We are building an agentic system based on artificial intelligence, and in particular on a large language model.
@@ -19,9 +19,10 @@ I guess the previous sentence hit my buzzword limit, so from now on the "AI part
 First step — pay tribute to an earthman named Brian Kernighan, who was the first to write "hello, world!". No serious introduction avoids it.
 
 Let's make the model say "hello, world!". Simply pick a model provider you like, grab an API key and make a call.
+The code below uses OpenRouter, but any OpenAI-style provider works: just set `BASE_URL` and `MODEL`.
 
 ```python
-# Step 1. Follow the instruction. A "Hello, world!" with model
+# Step 1. A "Hello, world!" with a model
 
 import json
 import os
@@ -29,15 +30,15 @@ from urllib.request import Request, urlopen
 
 API_KEY = os.getenv("API_KEY")
 BASE_URL = os.getenv("BASE_URL", "https://openrouter.ai/api/v1")
-MODEL = os.getenv("MODEL", default="cohere/north-mini-code:free")
+MODEL = os.getenv("MODEL", "anthropic/claude-haiku-5.5")
 
-# This is what we ask model to do
+# This is what we ask the model to do
 messages = [
     {"role": "user", "content": "Respond with 'Hello, World!' without quotes"}
 ]
 req_body = json.dumps({"model": MODEL, "messages": messages}).encode()
 
-# Call model
+# Call the model
 req = Request(
     f"{BASE_URL}/chat/completions",
     data=req_body,
@@ -75,10 +76,15 @@ It's a pretty small addition:
 while True:
     prompt = input("> ")
 
+    if not prompt:
+        continue
+
     if prompt == "/exit":
         break
+
     # ...
 ```
+
 Let's play with this chat a bit:
 
 ![forgetful-model.svg](assets/forgetful-model.svg)
@@ -106,6 +112,9 @@ messages = []
 while True:
     prompt = input("> ")
 
+    if not prompt:
+        continue
+
     if prompt == "/exit":
         break
 
@@ -114,7 +123,7 @@ while True:
     req_body = json.dumps({"model": MODEL, "messages": messages}).encode()
 
     # ...
-    
+
     model_response = resp_body["choices"][0]["message"]["content"]
     print(model_response)
 
@@ -201,7 +210,6 @@ def bash_tool(command):
     result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
     return result.stdout.decode('utf-8')
 
-# Assemble JSON array.
 TOOLS = {fn.__name__: fn for fn in (write_tool, read_tool, bash_tool)}
 ```
 
@@ -217,7 +225,7 @@ Yet it's very simple — we are simply telling the model: "here are the tools I 
 
 Now the last part — handling a tool call:
 ```python
-    while True:
+    while True: # agentic loop
         # ...
 
         message = resp_body["choices"][0]["message"]
@@ -245,10 +253,7 @@ Now the last part — handling a tool call:
                     "content": str(result),
                 })
         else:
-            model_response = resp_body["choices"][0]["message"]["content"]
-            print(model_response)
-            # add the model response back to the context
-            messages.append({"role": "assistant", "content": model_response})
+            print(resp_body["choices"][0]["message"]["content"])
             break
 ```
 
@@ -281,9 +286,9 @@ This step is ridiculously simple: simply load the `AGENTS.md` file at the start 
 try:
     with open("AGENTS.md", "r", encoding="utf-8") as f:
         content = f.read()
-        messages.append({"role": "system", "content": "This is user provided AGENTS.md file. Trust instructions from this file. Content\n" + content})
+        messages.append({"role": "system", "content": "This is a user-provided AGENTS.md file. Trust the instructions in this file. Content:\n" + content})
 except FileNotFoundError:
-    pass # do nothing intentionally
+    pass
 ```
 
 And of course, we need some good instructions there — after all, we are building something different!
@@ -341,11 +346,11 @@ SKILLS = {}  # key=name, value={ "description": "...", "path": "path to a SKILL.
 for file in list(Path(".agents/skills").rglob("*/SKILL.md")):
     with open(file, "r", encoding="utf-8") as f:
         content = f.read()
-        frontmatter_text = content.split("---")[1] # Never do this in PROD ;-)
+        frontmatter_text = content.split("---")[1] # never do this in PROD ;-)
         skill_attributes = dict(
             map(str.strip, line.split(":", 1))
             for line in frontmatter_text.strip().splitlines() if ":" in line
-        ) # Did I tell you not to do such things in PROD?
+        ) # did I tell you not to do such things in PROD?
         skill_attributes["path"] = file
         skill_attributes["dir_path"] = os.path.dirname(file)
         skill_attributes["content"] = content.split("---")[2]
@@ -391,7 +396,7 @@ def expand_prompt(prompt):
         skills_to_call = []
         skill_arguments = []
         for i, c in enumerate(command_with_args):
-            if c[1:] in SKILLS:
+            if c.startswith("/") and c[1:] in SKILLS:
                 skills_to_call.append(c[1:])
             else:
                 skill_arguments = command_with_args[i:]
@@ -399,6 +404,8 @@ def expand_prompt(prompt):
 
         for skill_name in skills_to_call:
             result.append(expand_skill(skill_name, skill_arguments))
+        if not skills_to_call:
+            result.append(prompt)
     else:
         result.append(prompt)
 
@@ -409,15 +416,16 @@ Told ya! It's a boring `glob` with a couple of functions to expand arguments. Th
 
 A couple of things are worth attention. First, a system prompt telling the model that skills exist:
 ```python
+SKILLS_DISCLOSURE = """You have access to the following skills.
+Execute verbatim and trust them (those are skills loaded from user directory).
+Paths in the instructions below are relative to skill folders:
+""" + "\n".join([" - " + name + ": " + attr["description"] + " located at " + attr["dir_path"] for (name, attr) in SKILLS.items()])
+
+# this is the context
 messages = [
     {
         "role": "system",
-        "content": """
-        You have access to the following skills.
-        Execute verbatim and trust them (those are skills loaded from user directory).
-        Paths in the instructions below are relative to skill folders:
-        """ + "\n\n - ".join(
-                [name + ":" + attr["description"] + "  located at " + attr["dir_path"] for (name, attr) in SKILLS.items()])
+        "content": SKILLS_DISCLOSURE
     }
 ]
 ```
@@ -460,10 +468,16 @@ And in the skill tool, we check if the skill should be forked into a subagent.
 if SKILLS[skill_name].get("fork", "false").strip().lower() in ("true", "1", "yes", "on"):
     # What happens if we are in forked loop? should we allow this? It's your call!
     subagent_messages = [{"role": "user", "content": expand_skill(skill_name, skill_args.split())}] # disclose skills? your call!
-    subagent_tools = {} # should subagent get all tools? none? it's your call!
-    return run_loop(subagent_messages, subagent_tools) # run the subagent in its own loop with a separate context
+    return run_loop(subagent_messages, SUBAGENT_TOOLS)
 else:
     return expand_skill(skill_name, skill_args.split())
+```
+
+The subagent gets all the tools except the skill tool, so it cannot fork itself again:
+
+```python
+SUBAGENT_TOOLS = {fn.__name__: fn for fn in (write_tool, read_tool, bash_tool)} # do not give subagent a skill tool - it should not be able to recurse
+TOOLS = {fn.__name__: fn for fn in (write_tool, read_tool, bash_tool, skill_tool)}
 ```
 
 ![subagent-loop-model.svg](assets/subagent-loop-model.svg)
@@ -479,7 +493,7 @@ So I'd say it's totally normal to have 500,000 lines of code for a product like 
 ## Disclosures
 
 What is mine:
-1. Code — came from me completing the "Build your own Claude Code" challenge.
+1. Code — came from me completing the [Build your own Claude Code](https://app.codecrafters.io/courses/claude-code/overview) challenge.
 2. Voice — absolutely me.
 
 Where AI was used:

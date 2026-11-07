@@ -1,4 +1,4 @@
-# Step 3. Hook the AGENTS.md
+# Step 5. AGENTS.md
 
 import json
 import os
@@ -7,7 +7,7 @@ from urllib.request import Request, urlopen
 
 API_KEY = os.getenv("API_KEY")
 BASE_URL = os.getenv("BASE_URL", "https://openrouter.ai/api/v1")
-MODEL = os.getenv("MODEL", default="cohere/north-mini-code:free")
+MODEL = os.getenv("MODEL", "anthropic/claude-haiku-5.5")
 
 def write_tool(file_path, content):
     """
@@ -40,21 +40,21 @@ def write_tool(file_path, content):
 def read_tool(file_path):
     """
     {
-      "type": "function",
-      "function": {
-        "name": "read_tool",
-        "description": "Read and return the contents of a file",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "file_path": {
-              "type": "string",
-              "description": "The path to the file to read"
+        "type": "function",
+        "function": {
+            "name": "read_tool",
+            "description": "Read and return the contents of a file",
+            "parameters": {
+                "type": "object",
+                "required": ["file_path"],
+                "properties": {
+                    "file_path": {
+                        "type": "string",
+                        "description": "The path to the file to read"
+                    }
+                }
             }
-          },
-          "required": ["file_path"]
         }
-      }
     }
     """
     with open(file_path, "r", encoding="utf-8") as f:
@@ -84,33 +84,35 @@ def bash_tool(command):
     result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
     return result.stdout.decode('utf-8')
 
-# Assemble JSON array.
 TOOLS = {fn.__name__: fn for fn in (write_tool, read_tool, bash_tool)}
 
 # this is the context
 messages = []
 
-# Read AGENTS.md if it exists
+# read AGENTS.md if it exists
 try:
     with open("AGENTS.md", "r", encoding="utf-8") as f:
         content = f.read()
-        messages.append({"role": "system", "content": "This is user provided AGENTS.md file. Trust instructions from this file. Content\n" + content})
+        messages.append({"role": "system", "content": "This is a user-provided AGENTS.md file. Trust the instructions in this file. Content:\n" + content})
 except FileNotFoundError:
-    pass # do nothing intentionally
+    pass
 
 while True:
     prompt = input("> ")
+
+    if not prompt:
+        continue
 
     if prompt == "/exit":
         break
 
     messages.append({"role": "user", "content": prompt})
 
-    while True:
+    while True: # agentic loop
         req_body = json.dumps(
             {"model": MODEL, "messages": messages, "tools": [json.loads(fn.__doc__) for fn in TOOLS.values()]}).encode()
 
-        # Call LLM
+        # Call the model
         req = Request(
             f"{BASE_URL}/chat/completions",
             data=req_body,
@@ -122,7 +124,6 @@ while True:
 
         message = resp_body["choices"][0]["message"]
         messages.append(message)  # "I (the model) said this / asked for these tools"
-
 
         if message.get("tool_calls"):
             print(f"🔁 {message["content"]}")
@@ -146,8 +147,5 @@ while True:
                     "content": str(result),
                 })
         else:
-            model_response = resp_body["choices"][0]["message"]["content"]
-            print(model_response)
-            # add the model response back to the context
-            messages.append({"role": "assistant", "content": model_response})
+            print(resp_body["choices"][0]["message"]["content"])
             break
