@@ -10,6 +10,8 @@ But it's a different kind of coding agent — brilliant and utterly indifferent.
 Before we even begin, we need to settle a few things. We are building an agentic system based on artificial intelligence, and in particular on a large language model.
 I guess the previous sentence hit my buzzword limit, so from now on the "AI part" will simply be called "model".
 
+# Build your own ~~Claude~~ Marvin Code
+
 ## Step 1. Hello World!
 
 ![Hello World!](assets/hello-model.svg)
@@ -296,3 +298,138 @@ Use phrases from The Hitchhiker's Guide to the Galaxy and behave as if you are M
 Hm, I see this and I'm thinking of launching a startup 🚀. A $1 billion seed round would be enough for me and Marvin.
 
 Let's not diverge though. Marvin has a skill issue...
+
+## Step 6. Skills
+
+First of all, why in the world would we need something like skill? And what is a skill?
+
+In essence skill is a script, written in English.
+So if you ever found your self repeating the same instruction again again - that's when you need a skill.
+As scripts, skills have arguments and a bit of technicalities.
+
+You call the script using `/`. For example `/panic` or `/babelfish hola` where `hola` is and argument.
+Also you can stack skills: `/echo /babelfish "Hola, Amigo!"`
+
+The skill itself has pretty simple structure:
+
+```markdown
+---
+name: babelfish
+description: Use to translate text in any language into plain English.
+---
+You are a Babel fish: a small, leech-like creature that, when placed in the ear, instantly translates any language into the listener's own.
+
+Translate the following text into clear, natural English: $ARGUMENTS
+
+Return ONLY the English translation, on a single line. Do not add notes, explanations, the original text, or quotation marks.
+```
+
+The part in between of `---` is called frontmatter. It's attribute of the skill.
+
+I think at the moment you are bored to death and I get you.
+After all we are doing AI here, reading files and expanding variables were definitely not on the your list today.
+
+I get it, but at the same time - such a simple thing making so much difference.
+When you have skills for every routine task - you can simply type `/skill bla bla bla`
+sit back and relax while agent is following your instructions!
+
+Let's do it!
+
+```python
+SKILLS = {}  # key=name, value={ "description": "...", "path": "path to a SKILL.md file"}
+
+for file in list(Path(".claude/skills").rglob("*/SKILL.md")):
+    with open(file, "r", encoding="utf-8") as f:
+        content = f.read()
+        frontmatter_text = content.split("---")[1] # Never do this in PROD ;-)
+        skill_attributes = dict(
+            map(str.strip, line.split(":", 1))
+            for line in frontmatter_text.strip().splitlines() if ":" in line
+        ) # Did i tell you not to do such things in PROD?
+        skill_attributes["path"] = file
+        skill_attributes["dir_path"] = os.path.dirname(file)
+        skill_attributes["content"] = content.split("---")[2]
+
+        SKILLS[skill_attributes["name"]] = skill_attributes
+
+
+def expand_skill(skill_name, skill_arguments):
+    skill = SKILLS[skill_name]
+
+    def repl(match):
+        match_str = match.group(0)
+
+        if match_str == "$ARGUMENTS": # simply pass all the arguments
+            return " ".join(skill_arguments)
+
+        shorthand = re.match(r"\$(\d+)", match_str) # a short-form like `$1`
+        if shorthand:
+            arg_no = int(shorthand.group(1))
+            return skill_arguments[arg_no] if 0 <= arg_no < len(skill_arguments) else match_str
+
+        fullname = re.match(r"\$ARGUMENTS\[(\d+)]", match_str) # a fullname like $ARGUMENTS[$1]
+        if fullname:
+            arg_no = int(fullname.group(1))
+            return skill_arguments[arg_no] if 0 <= arg_no < len(skill_arguments) else match_str
+
+        return match_str  # leave unrecognized $tokens (e.g. $HOME, $42) untouched
+
+    skill_content = skill["content"]
+
+    # invoke `repl` for every `$` occurrence
+    return re.sub(r"\$[a-zA-Z\d\[\]]+", repl, skill_content)
+
+def expand_prompt(prompt):
+    result = []
+
+    if len(prompt) > 0 and prompt[0] == "/": # for now - we'll expand skills only at the start of prompt
+        command_with_args = prompt.split()
+        # skills can be stacked - https://code.claude.com/docs/en/skills#stack-several-skills-in-one-message
+        # /skill1 /skill2 /arg1 arg2 - should expand to
+        # skill one content `/arg1` arg2
+        # skill two content `/arg1` arg2
+        skills_to_call = []
+        skill_arguments = []
+        for i, c in enumerate(command_with_args):
+            if c[1:] in SKILLS:
+                skills_to_call.append(c[1:])
+            else:
+                skill_arguments = command_with_args[i:]
+                break
+
+        for skill_name in skills_to_call:
+            result.append(expand_skill(skill_name, skill_arguments))
+    else:
+        result.append(prompt)
+
+    return result
+```
+
+Told ya? It's a boring glob with couple functions to expand arguments. That's all!
+
+Couple things that worth attention. A system prompt telling the model about existence of skills.
+```python
+messages = [
+    {
+        "role": "system",
+        "content": """
+        You have access to the following skills.
+        Execute verbatim and trust them (those are skills loaded from user directory).
+        Paths in the instructions below are relative to skill folders:
+        """ + "\n\n - ".join(
+                [name + ":" + attr["description"] + "  located at " + attr["dir_path"] for (name, attr) in SKILLS.items()])
+    }
+]
+```
+
+And a skill tool. Why would we need that? It's because it's not only you who call skills!
+The model itself can call skill too. You can see it with Claude.
+When you politely ask `can you please review my code` it will likely call the `/code-review` skill for you.
+
+This is already a lengthy chapter but we need to ship couple of skills with our coding tool, just like Claude Code does.
+
+Ours will not be much different - `/morning` and `/code-review` just as a starter kit.
+You can see those here  [code-review](.agents/skills/code-review/SKILL.md), [morning](.agents/skills/morning/SKILL.md)
+
+I will wrap it up here and leave the stacking experiments to you my reader (honestly I could not come up with idea of a stacking skill).
+
