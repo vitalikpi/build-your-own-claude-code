@@ -345,7 +345,7 @@ for file in list(Path(".claude/skills").rglob("*/SKILL.md")):
         skill_attributes = dict(
             map(str.strip, line.split(":", 1))
             for line in frontmatter_text.strip().splitlines() if ":" in line
-        ) # Did i tell you not to do such things in PROD?
+        ) # Did I tell you not to do such things in PROD?
         skill_attributes["path"] = file
         skill_attributes["dir_path"] = os.path.dirname(file)
         skill_attributes["content"] = content.split("---")[2]
@@ -475,3 +475,10 @@ Just like that, in 300 lines of code, we have our own agentic coding tool.
 Here I can only guess. Claude Code has a UI: it is a TypeScript app with React rendered to the console.
 You don't get a UI like that without all the pain of managing state. Also, it wasn't written by humans.
 So I'd say it's totally normal to have 500,000 lines of code for a product like that.
+
+## Disclosures
+
+This is my own voice — no AI involved. But AI was involved in proofreading. If you doubt it, check the commit history.
+The animations are pure vibe-coded SVG. The code is 100% written by a human — after all, what is the point of writing it using AI?
+AI knows it already.
+Also, some joke ideas came from me going back and forth with Claude, so I claim no originality.
