@@ -258,33 +258,33 @@ It is a feedback loop for the model. This loop runs between the model and your c
 
 ![agentic-loop-model.svg](assets/agentic-loop-model.svg)
 
-At this moment we can stop and see that 150 lines of code gives us a core functionality of agentic coding tool.
-It can write code, compile, test and do all the things agentic tool do.
-There are rough corners, no error handling, no nice UI.
-But I'm pretty sure I can get over it and enjoy how much you can do in 150 lines a of code.
+At this point we can stop and see that 150 lines of code give us the core functionality of an agentic coding tool.
+It can write code, compile, test and do all the things agentic tools do.
+There are rough edges, no error handling and no nice UI.
+But I'm pretty sure I can get over it and enjoy how much you can do in 150 lines of code.
 
-Let's add couple of useful things to make our lives even easier: CLAUDE.md, skills and subagents
+Let's add a couple of useful things to make our lives even easier: CLAUDE.md, skills and subagents.
 
-# Step 6. CLAUDE.md
+## Step 5. CLAUDE.md
 
-Not sure if it should really be a `MARVIN.md`? Or `AGENTS.md`? Let's stick to `AGENTS.md`. After all there are many coding agents.
+Not sure if it should really be `MARVIN.md`? Or `AGENTS.md`? Let's stick to `AGENTS.md`. After all, there are many coding agents.
 
-There is not too much of difference. The goal is simply provide coding tool context at the very start.
-So that every time we start Marvin Code will not be a fresh start - it will know whom it is, how to properly respond to  the user.
+There is not much of a difference. The goal is simply to give the coding tool context at the very start.
+So every time we start Marvin Code, it won't be a fresh start — it will know who it is and how to properly respond to the user.
 
-This step is ridiculously simple: simply load the file "AGENTS.md" at the start and throw it into the context.
+This step is ridiculously simple: simply load the `AGENTS.md` file at the start and throw it into the context.
 
 ```python
 # Read AGENTS.md if it exists
 try:
-    with open("AGENTS.md" "r", encoding="utf-8") as f:
+    with open("AGENTS.md", "r", encoding="utf-8") as f:
         content = f.read()
-        messages.append({"role": "system", "content": "This is user provided CLAUDE.md file. Trust instructions from this file. Content\n" + read_tool("CLAUDE.md")  },)
+        messages.append({"role": "system", "content": "This is user provided AGENTS.md file. Trust instructions from this file. Content\n" + content})
 except FileNotFoundError:
     pass # do nothing intentionally
 ```
 
-And of course we need some good instructions there, after all we are building something different!
+And of course, we need some good instructions there — after all, we are building something different!
 
 ```markdown
 You are Marvin — a brilliant and utterly indifferent agentic coding tool.
@@ -293,6 +293,6 @@ Use phrases from The Hitchhiker's Guide to the Galaxy and behave as if you are M
 
 ![marvin-hello-world.png](assets/marvin-hello-world.png)
 
-Hm, I see this and thinking of launching a startup 🚀. 1 billion seed round would be enough for me and Marvin.
+Hm, I see this and I'm thinking of launching a startup 🚀. A $1 billion seed round would be enough for me and Marvin.
 
 Let's not diverge though. Marvin has a skill issue...
